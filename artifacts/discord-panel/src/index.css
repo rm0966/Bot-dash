@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap');
 @import "tailwindcss";
 @import "tw-animate-css";
 @plugin "@tailwindcss/typography";
@@ -76,56 +77,56 @@
   --elevate-1: rgba(0,0,0, .03);
   --elevate-2: rgba(0,0,0, .08);
 
-  /* Discord Light Theme inspired */
-  --background: 210 20% 98%;
-  --foreground: 220 10% 20%;
-  --border: 214 15% 90%;
+  /* Soft mint/cream theme */
+  --background: 150 40% 98%;
+  --foreground: 150 30% 15%;
+  --border: 150 30% 90%;
   --card: 0 0% 100%;
-  --card-foreground: 220 10% 20%;
-  --card-border: 214 15% 90%;
+  --card-foreground: 150 30% 15%;
+  --card-border: 150 30% 90%;
   
-  --sidebar: 210 20% 95%;
-  --sidebar-foreground: 220 10% 20%;
-  --sidebar-border: 214 15% 90%;
-  --sidebar-primary: 227 58% 65%;
+  --sidebar: 150 40% 96%;
+  --sidebar-foreground: 150 30% 15%;
+  --sidebar-border: 150 30% 90%;
+  --sidebar-primary: 160 84% 39%;
   --sidebar-primary-foreground: 0 0% 100%;
-  --sidebar-accent: 214 15% 90%;
-  --sidebar-accent-foreground: 220 10% 20%;
-  --sidebar-ring: 227 58% 65%;
+  --sidebar-accent: 150 30% 90%;
+  --sidebar-accent-foreground: 150 30% 15%;
+  --sidebar-ring: 160 84% 39%;
   
   --popover: 0 0% 100%;
-  --popover-foreground: 220 10% 20%;
-  --popover-border: 214 15% 90%;
+  --popover-foreground: 150 30% 15%;
+  --popover-border: 150 30% 90%;
   
-  /* Blurple */
-  --primary: 227 58% 65%;
+  /* Primary - Emerald */
+  --primary: 160 84% 39%;
   --primary-foreground: 0 0% 100%;
   
-  --secondary: 214 15% 90%;
-  --secondary-foreground: 220 10% 20%;
+  --secondary: 150 30% 92%;
+  --secondary-foreground: 150 30% 20%;
   
-  --muted: 210 20% 95%;
-  --muted-foreground: 215 14% 34%;
+  --muted: 150 40% 96%;
+  --muted-foreground: 150 20% 45%;
   
-  --accent: 214 15% 90%;
-  --accent-foreground: 220 10% 20%;
+  --accent: 150 30% 92%;
+  --accent-foreground: 150 30% 15%;
   
   /* Red */
-  --destructive: 359 83% 65%;
+  --destructive: 0 84% 60%;
   --destructive-foreground: 0 0% 100%;
   
-  --input: 214 15% 90%;
-  --ring: 227 58% 65%;
+  --input: 150 30% 90%;
+  --ring: 160 84% 39%;
   
-  --chart-1: 227 58% 65%;
-  --chart-2: 214 15% 90%;
+  --chart-1: 160 84% 39%;
+  --chart-2: 150 30% 90%;
   --chart-3: 150 50% 50%;
-  --chart-4: 359 83% 65%;
+  --chart-4: 0 84% 60%;
   --chart-5: 45 100% 50%;
 
   --app-font-sans: 'Inter', sans-serif;
   --app-font-serif: Georgia, serif;
-  --app-font-mono: 'Space Mono', Menlo, monospace;
+  --app-font-mono: 'JetBrains Mono', Menlo, monospace;
   --radius: 0.5rem;
   
   --shadow-2xs: 0px 2px 0px 0px rgba(0,0,0,0.02);
@@ -157,52 +158,52 @@
   --elevate-1: rgba(255,255,255, .04);
   --elevate-2: rgba(255,255,255, .09);
 
-  /* Discord Dark Theme inspired */
-  --background: 225 6% 13%; /* #1e1f22 */
-  --foreground: 210 9% 87%;
-  --border: 220 7% 18%; /* #2b2d31 */
+  /* Deep Emerald Command Center */
+  --background: 150 25% 6%;
+  --foreground: 148 60% 93%;
+  --border: 148 28% 14%;
   
-  --card: 220 7% 18%; /* #2b2d31 */
-  --card-foreground: 210 9% 87%;
-  --card-border: 223 7% 21%; /* #313338 */
+  --card: 150 28% 8%;
+  --card-foreground: 148 60% 93%;
+  --card-border: 148 28% 14%;
   
-  --sidebar: 225 6% 13%;
-  --sidebar-foreground: 210 9% 87%;
-  --sidebar-border: 220 7% 18%;
-  --sidebar-primary: 227 58% 65%;
+  --sidebar: 150 25% 5%;
+  --sidebar-foreground: 148 60% 93%;
+  --sidebar-border: 148 28% 10%;
+  --sidebar-primary: 160 84% 39%;
   --sidebar-primary-foreground: 0 0% 100%;
-  --sidebar-accent: 220 7% 24%;
-  --sidebar-accent-foreground: 210 9% 96%;
-  --sidebar-ring: 227 58% 65%;
+  --sidebar-accent: 148 32% 15%;
+  --sidebar-accent-foreground: 152 82% 80%;
+  --sidebar-ring: 160 84% 39%;
   
-  --popover: 223 7% 21%;
-  --popover-foreground: 210 9% 87%;
-  --popover-border: 220 7% 18%;
+  --popover: 150 28% 8%;
+  --popover-foreground: 148 60% 93%;
+  --popover-border: 148 28% 14%;
   
-  /* Blurple */
-  --primary: 227 58% 65%; /* #5865F2 */
+  /* Primary - Emerald */
+  --primary: 160 84% 39%;
   --primary-foreground: 0 0% 100%;
   
-  --secondary: 220 7% 24%; /* Slightly lighter than card */
-  --secondary-foreground: 210 9% 96%;
+  --secondary: 148 28% 10%;
+  --secondary-foreground: 151 82% 90%;
   
-  --muted: 223 7% 21%;
-  --muted-foreground: 215 14% 65%;
+  --muted: 148 28% 7%;
+  --muted-foreground: 145 20% 52%;
   
-  --accent: 220 7% 24%;
-  --accent-foreground: 210 9% 96%;
+  --accent: 148 32% 15%;
+  --accent-foreground: 152 82% 80%;
   
   /* Red */
-  --destructive: 359 83% 65%; /* #ED4245 */
+  --destructive: 0 84% 60%;
   --destructive-foreground: 0 0% 100%;
   
-  --input: 225 6% 13%; /* Darker for input fields */
-  --ring: 227 58% 65%;
+  --input: 150 25% 6%;
+  --ring: 160 84% 39%;
   
-  --chart-1: 227 58% 65%;
-  --chart-2: 220 7% 24%;
+  --chart-1: 160 84% 39%;
+  --chart-2: 148 28% 10%;
   --chart-3: 150 50% 50%;
-  --chart-4: 359 83% 65%;
+  --chart-4: 0 84% 60%;
   --chart-5: 45 100% 50%;
 
   --shadow-2xs: 0px 2px 0px 0px rgba(0,0,0,0.2);

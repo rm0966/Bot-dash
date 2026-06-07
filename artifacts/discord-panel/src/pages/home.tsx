@@ -44,10 +44,10 @@ export default function Home() {
   if (!token) {
     return (
       <div className="container mx-auto min-h-[calc(100vh-4rem)] flex items-center justify-center px-4">
-        <Card className="w-full max-w-md border-border/50 shadow-2xl">
+        <Card className="w-full max-w-md border-border shadow-2xl glow-emerald">
           <CardHeader className="space-y-1 pb-6">
-            <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4">
-              <KeyRound className="h-6 w-6 text-primary" />
+            <div className="w-12 h-12 bg-primary rounded-full flex items-center justify-center mb-4 glow-emerald">
+              <KeyRound className="h-6 w-6 text-primary-foreground" />
             </div>
             <CardTitle className="text-2xl font-bold tracking-tight">Connect Bot</CardTitle>
             <CardDescription className="text-muted-foreground">

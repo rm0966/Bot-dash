@@ -12,7 +12,7 @@ export function Layout({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
       {botInfo && (
-        <header className="sticky top-0 z-50 w-full border-b border-border bg-card/50 backdrop-blur-md">
+        <header className="sticky top-0 z-50 w-full border-b border-border bg-background border-l-4 border-l-primary">
           <div className="container mx-auto h-16 flex items-center justify-between px-4">
             <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
               <Avatar className="h-9 w-9 border border-border">
@@ -20,7 +20,10 @@ export function Layout({ children }: { children: ReactNode }) {
                 <AvatarFallback>{botInfo.username.substring(0, 2).toUpperCase()}</AvatarFallback>
               </Avatar>
               <div className="flex flex-col">
-                <span className="text-sm font-semibold leading-none">{botInfo.username}</span>
+                <span className="text-sm font-semibold leading-none text-primary flex items-center gap-2">
+                  {botInfo.username}
+                  <span className="w-2 h-2 rounded-full bg-primary glow-emerald"></span>
+                </span>
                 <span className="text-xs text-muted-foreground mt-1 leading-none">#{botInfo.discriminator}</span>
               </div>
             </Link>

@@ -61,28 +61,28 @@ function DashboardContent({ guildId, token }: { guildId: string; token: string }
       </div>
 
       <Tabs defaultValue="message" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 md:grid-cols-3 lg:grid-cols-6 mb-8 bg-card/50 h-auto gap-1 p-1">
-          <TabsTrigger value="message" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground py-2">
+        <TabsList className="grid w-full grid-cols-2 md:grid-cols-3 lg:grid-cols-6 mb-8 bg-transparent border-b border-border h-auto gap-0 p-0 rounded-none">
+          <TabsTrigger value="message" className="data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none py-3 data-[state=active]:shadow-none">
             <MessageSquare className="h-4 w-4 mr-2" />
             Msg
           </TabsTrigger>
-          <TabsTrigger value="image" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground py-2">
+          <TabsTrigger value="image" className="data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none py-3 data-[state=active]:shadow-none">
             <ImageIcon className="h-4 w-4 mr-2" />
             Img
           </TabsTrigger>
-          <TabsTrigger value="channels" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground py-2">
+          <TabsTrigger value="channels" className="data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none py-3 data-[state=active]:shadow-none">
             <ListTree className="h-4 w-4 mr-2" />
             Channels
           </TabsTrigger>
-          <TabsTrigger value="roles" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground py-2">
+          <TabsTrigger value="roles" className="data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none py-3 data-[state=active]:shadow-none">
             <ShieldAlert className="h-4 w-4 mr-2" />
             Roles
           </TabsTrigger>
-          <TabsTrigger value="members" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground py-2">
+          <TabsTrigger value="members" className="data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none py-3 data-[state=active]:shadow-none">
             <Shield className="h-4 w-4 mr-2" />
             Members
           </TabsTrigger>
-          <TabsTrigger value="bans" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground py-2">
+          <TabsTrigger value="bans" className="data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none py-3 data-[state=active]:shadow-none">
             <ShieldBan className="h-4 w-4 mr-2" />
             Bans
           </TabsTrigger>
