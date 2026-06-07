@@ -335,6 +335,132 @@ export const UnbanMemberResponse = zod.object({
 
 
 /**
+ * @summary Get guild overview info and stats
+ */
+export const GetGuildOverviewParams = zod.object({
+  "guildId": zod.coerce.string()
+})
+
+export const GetGuildOverviewHeader = zod.object({
+  "X-Bot-Token": zod.string()
+})
+
+export const GetGuildOverviewResponse = zod.object({
+  "id": zod.string(),
+  "name": zod.string(),
+  "icon": zod.string().nullish(),
+  "description": zod.string().nullish(),
+  "memberCount": zod.number(),
+  "channelCount": zod.number(),
+  "roleCount": zod.number(),
+  "emojiCount": zod.number(),
+  "boostLevel": zod.number(),
+  "boostCount": zod.number(),
+  "ownerId": zod.string(),
+  "createdAt": zod.string()
+})
+
+
+/**
+ * @summary Get all emojis in a guild
+ */
+export const GetEmojisParams = zod.object({
+  "guildId": zod.coerce.string()
+})
+
+export const GetEmojisHeader = zod.object({
+  "X-Bot-Token": zod.string()
+})
+
+export const GetEmojisResponseItem = zod.object({
+  "id": zod.string(),
+  "name": zod.string(),
+  "animated": zod.boolean(),
+  "managed": zod.boolean(),
+  "url": zod.string()
+})
+export const GetEmojisResponse = zod.array(GetEmojisResponseItem)
+
+
+/**
+ * @summary Change a member's nickname
+ */
+export const ChangeNicknameParams = zod.object({
+  "guildId": zod.coerce.string(),
+  "userId": zod.coerce.string()
+})
+
+export const ChangeNicknameBody = zod.object({
+  "token": zod.string(),
+  "nickname": zod.string().nullish()
+})
+
+export const ChangeNicknameResponse = zod.object({
+  "success": zod.boolean(),
+  "message": zod.string()
+})
+
+
+/**
+ * @summary Send a direct message to a user
+ */
+export const SendDmParams = zod.object({
+  "guildId": zod.coerce.string()
+})
+
+export const SendDmBody = zod.object({
+  "token": zod.string(),
+  "userId": zod.string(),
+  "content": zod.string()
+})
+
+export const SendDmResponse = zod.object({
+  "success": zod.boolean(),
+  "message": zod.string()
+})
+
+
+/**
+ * @summary Create an invite link for a channel
+ */
+export const CreateInviteParams = zod.object({
+  "guildId": zod.coerce.string(),
+  "channelId": zod.coerce.string()
+})
+
+export const CreateInviteBody = zod.object({
+  "token": zod.string(),
+  "maxAge": zod.number().nullish(),
+  "maxUses": zod.number().nullish()
+})
+
+export const CreateInviteResponse = zod.object({
+  "success": zod.boolean(),
+  "code": zod.string(),
+  "url": zod.string(),
+  "expiresAt": zod.string().nullish()
+})
+
+
+/**
+ * @summary Bulk delete recent messages from a channel
+ */
+export const PurgeMessagesParams = zod.object({
+  "channelId": zod.coerce.string()
+})
+
+export const PurgeMessagesBody = zod.object({
+  "token": zod.string(),
+  "count": zod.number()
+})
+
+export const PurgeMessagesResponse = zod.object({
+  "success": zod.boolean(),
+  "message": zod.string()
+})
+
+
+/**
  * @summary Get all auto-reply rules for a guild
  */
 export const GetAutoRepliesParams = zod.object({

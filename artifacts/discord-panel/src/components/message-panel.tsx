@@ -47,7 +47,7 @@ export function MessagePanel({ channels, token, type }: MessagePanelProps) {
             }
           },
           onError: (err) => {
-            toast({ title: "Error", description: err.error, variant: "destructive" });
+            toast({ title: "Error", description: (err as any).error || "Failed to send message", variant: "destructive" });
           }
         }
       );
@@ -66,7 +66,7 @@ export function MessagePanel({ channels, token, type }: MessagePanelProps) {
             }
           },
           onError: (err) => {
-            toast({ title: "Error", description: err.error, variant: "destructive" });
+            toast({ title: "Error", description: (err as any).error || "Failed to send image", variant: "destructive" });
           }
         }
       );

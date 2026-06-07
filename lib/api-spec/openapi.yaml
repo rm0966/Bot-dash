@@ -552,6 +552,190 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
+  /discord/guilds/{guildId}/overview:
+    get:
+      operationId: getGuildOverview
+      tags: [discord]
+      summary: Get guild overview info and stats
+      parameters:
+        - name: guildId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: X-Bot-Token
+          in: header
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Guild overview
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GuildOverview"
+
+  /discord/guilds/{guildId}/emojis:
+    get:
+      operationId: getEmojis
+      tags: [discord]
+      summary: Get all emojis in a guild
+      parameters:
+        - name: guildId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: X-Bot-Token
+          in: header
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of emojis
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/GuildEmoji"
+
+  /discord/guilds/{guildId}/members/{userId}/nickname:
+    post:
+      operationId: changeNickname
+      tags: [discord]
+      summary: Change a member's nickname
+      parameters:
+        - name: guildId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NicknameInput"
+      responses:
+        "200":
+          description: Nickname changed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ActionResult"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /discord/guilds/{guildId}/send-dm:
+    post:
+      operationId: sendDm
+      tags: [discord]
+      summary: Send a direct message to a user
+      parameters:
+        - name: guildId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DmInput"
+      responses:
+        "200":
+          description: DM sent
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ActionResult"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /discord/guilds/{guildId}/channels/{channelId}/invite:
+    post:
+      operationId: createInvite
+      tags: [discord]
+      summary: Create an invite link for a channel
+      parameters:
+        - name: guildId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: channelId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateInviteInput"
+      responses:
+        "200":
+          description: Invite created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InviteResult"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /discord/channels/{channelId}/purge:
+    post:
+      operationId: purgeMessages
+      tags: [discord]
+      summary: Bulk delete recent messages from a channel
+      parameters:
+        - name: channelId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PurgeInput"
+      responses:
+        "200":
+          description: Messages purged
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ActionResult"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
   /discord/guilds/{guildId}/auto-replies:
     get:
       operationId: getAutoReplies
@@ -1150,3 +1334,125 @@ components:
         - token
         - trigger
         - response
+
+    GuildOverview:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        icon:
+          type: ["string", "null"]
+        description:
+          type: ["string", "null"]
+        memberCount:
+          type: integer
+        channelCount:
+          type: integer
+        roleCount:
+          type: integer
+        emojiCount:
+          type: integer
+        boostLevel:
+          type: integer
+        boostCount:
+          type: integer
+        ownerId:
+          type: string
+        createdAt:
+          type: string
+      required:
+        - id
+        - name
+        - memberCount
+        - channelCount
+        - roleCount
+        - emojiCount
+        - boostLevel
+        - boostCount
+        - ownerId
+        - createdAt
+
+    GuildEmoji:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        animated:
+          type: boolean
+        managed:
+          type: boolean
+        url:
+          type: string
+      required:
+        - id
+        - name
+        - animated
+        - managed
+        - url
+
+    NicknameInput:
+      type: object
+      properties:
+        token:
+          type: string
+        nickname:
+          type: ["string", "null"]
+      required:
+        - token
+
+    DmInput:
+      type: object
+      properties:
+        token:
+          type: string
+        userId:
+          type: string
+        content:
+          type: string
+      required:
+        - token
+        - userId
+        - content
+
+    CreateInviteInput:
+      type: object
+      properties:
+        token:
+          type: string
+        maxAge:
+          type: ["integer", "null"]
+        maxUses:
+          type: ["integer", "null"]
+      required:
+        - token
+
+    InviteResult:
+      type: object
+      properties:
+        success:
+          type: boolean
+        code:
+          type: string
+        url:
+          type: string
+        expiresAt:
+          type: ["string", "null"]
+      required:
+        - success
+        - code
+        - url
+
+    PurgeInput:
+      type: object
+      properties:
+        token:
+          type: string
+        count:
+          type: integer
+      required:
+        - token
+        - count

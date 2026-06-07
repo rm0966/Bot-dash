@@ -152,3 +152,61 @@ export interface CreateAutoReplyInput {
   matchType?: string;
 }
 
+export interface GuildOverview {
+  id: string;
+  name: string;
+  /** @nullable */
+  icon?: string | null;
+  /** @nullable */
+  description?: string | null;
+  memberCount: number;
+  channelCount: number;
+  roleCount: number;
+  emojiCount: number;
+  boostLevel: number;
+  boostCount: number;
+  ownerId: string;
+  createdAt: string;
+}
+
+export interface GuildEmoji {
+  id: string;
+  name: string;
+  animated: boolean;
+  managed: boolean;
+  url: string;
+}
+
+export interface NicknameInput {
+  token: string;
+  /** @nullable */
+  nickname?: string | null;
+}
+
+export interface DmInput {
+  token: string;
+  userId: string;
+  content: string;
+}
+
+export interface CreateInviteInput {
+  token: string;
+  /** @nullable */
+  maxAge?: number | null;
+  /** @nullable */
+  maxUses?: number | null;
+}
+
+export interface InviteResult {
+  success: boolean;
+  code: string;
+  url: string;
+  /** @nullable */
+  expiresAt?: string | null;
+}
+
+export interface PurgeInput {
+  token: string;
+  count: number;
+}
+

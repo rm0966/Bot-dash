@@ -432,5 +432,148 @@ router.post("/discord/channels/:channelId/delete", async (req, res) => {
   return res.json({ success: true, message: "Channel deleted successfully" });
 });
 
+router.get("/discord/guilds/:guildId/overview", async (req, res) => {
+  const token = req.headers["x-bot-token"] as string;
+  const { guildId } = req.params;
+  if (!token) return res.status(401).json({ error: "Missing X-Bot-Token header" });
+  const r = await discordRequest(`/guilds/${guildId}?with_counts=true`, token);
+  if (!r.ok) {
+    const err = await r.json().catch(() => ({})) as Record<string, unknown>;
+    return res.status(400).json({ error: String(err.message ?? "Failed to fetch guild info") });
+  }
+  const g = await r.json() as Record<string, unknown>;
+  return res.json({
+    id: g.id,
+    name: g.name,
+    icon: g.icon ?? null,
+    description: g.description ?? null,
+    memberCount: (g.approximate_member_count as number) ?? 0,
+    channelCount: 0,
+    roleCount: Array.isArray(g.roles) ? g.roles.length : 0,
+    emojiCount: Array.isArray(g.emojis) ? g.emojis.length : 0,
+    boostLevel: (g.premium_tier as number) ?? 0,
+    boostCount: (g.premium_subscription_count as number) ?? 0,
+    ownerId: g.owner_id,
+    createdAt: new Date(Number(BigInt(g.id as string) >> 22n) + 1420070400000).toISOString(),
+  });
+});
+
+router.get("/discord/guilds/:guildId/emojis", async (req, res) => {
+  const token = req.headers["x-bot-token"] as string;
+  const { guildId } = req.params;
+  if (!token) return res.status(401).json({ error: "Missing X-Bot-Token header" });
+  const r = await discordRequest(`/guilds/${guildId}/emojis`, token);
+  if (!r.ok) {
+    const err = await r.json().catch(() => ({})) as Record<string, unknown>;
+    return res.status(400).json({ error: String(err.message ?? "Failed to fetch emojis") });
+  }
+  const emojis = await r.json() as Array<Record<string, unknown>>;
+  return res.json(emojis.map(e => ({
+    id: e.id,
+    name: e.name,
+    animated: e.animated ?? false,
+    managed: e.managed ?? false,
+    url: `https://cdn.discordapp.com/emojis/${e.id}.${e.animated ? "gif" : "png"}`,
+  })));
+});
+
+router.post("/discord/guilds/:guildId/members/:userId/nickname", async (req, res) => {
+  const { token, nickname } = req.body;
+  const { guildId, userId } = req.params;
+  if (!token) return res.status(400).json({ error: "token is required" });
+  const r = await discordRequest(`/guilds/${guildId}/members/${userId}`, token, {
+    method: "PATCH",
+    body: JSON.stringify({ nick: nickname ?? null }),
+  });
+  if (!r.ok) {
+    const err = await r.json().catch(() => ({})) as Record<string, unknown>;
+    const msg = String(err.message ?? "Failed to change nickname");
+    if (r.status === 403) return res.status(400).json({ error: `Permission denied: ${msg}. Make sure the bot has 'Manage Nicknames' permission and the member is not the server owner.` });
+    return res.status(400).json({ error: msg });
+  }
+  return res.json({ success: true, message: nickname ? `Nickname changed to "${nickname}"` : "Nickname cleared" });
+});
+
+router.post("/discord/guilds/:guildId/send-dm", async (req, res) => {
+  const { token, userId, content } = req.body;
+  const { guildId } = req.params;
+  if (!token || !userId || !content) return res.status(400).json({ error: "token, userId, and content are required" });
+  const dmChan = await discordRequest("/users/@me/channels", token, {
+    method: "POST",
+    body: JSON.stringify({ recipient_id: userId }),
+  });
+  if (!dmChan.ok) {
+    const err = await dmChan.json().catch(() => ({})) as Record<string, unknown>;
+    return res.status(400).json({ error: String(err.message ?? "Failed to open DM channel. The user may have DMs disabled.") });
+  }
+  const chan = await dmChan.json() as Record<string, unknown>;
+  const sendRes = await discordRequest(`/channels/${chan.id}/messages`, token, {
+    method: "POST",
+    body: JSON.stringify({ content }),
+  });
+  if (!sendRes.ok) {
+    const err = await sendRes.json().catch(() => ({})) as Record<string, unknown>;
+    return res.status(400).json({ error: String(err.message ?? "Failed to send DM") });
+  }
+  return res.json({ success: true, message: "Direct message sent successfully" });
+});
+
+router.post("/discord/guilds/:guildId/channels/:channelId/invite", async (req, res) => {
+  const { token, maxAge, maxUses } = req.body;
+  const { channelId } = req.params;
+  if (!token) return res.status(400).json({ error: "token is required" });
+  const r = await discordRequest(`/channels/${channelId}/invites`, token, {
+    method: "POST",
+    body: JSON.stringify({ max_age: maxAge ?? 86400, max_uses: maxUses ?? 0, temporary: false }),
+  });
+  if (!r.ok) {
+    const err = await r.json().catch(() => ({})) as Record<string, unknown>;
+    return res.status(400).json({ error: String(err.message ?? "Failed to create invite") });
+  }
+  const invite = await r.json() as Record<string, unknown>;
+  const expiresAt = invite.expires_at ? new Date(invite.expires_at as string).toISOString() : null;
+  return res.json({
+    success: true,
+    code: invite.code,
+    url: `https://discord.gg/${invite.code}`,
+    expiresAt,
+  });
+});
+
+router.post("/discord/channels/:channelId/purge", async (req, res) => {
+  const { token, count } = req.body;
+  const { channelId } = req.params;
+  if (!token || !count) return res.status(400).json({ error: "token and count are required" });
+  const limit = Math.min(Math.max(1, Number(count)), 100);
+  const msgsRes = await discordRequest(`/channels/${channelId}/messages?limit=${limit}`, token);
+  if (!msgsRes.ok) {
+    const err = await msgsRes.json().catch(() => ({})) as Record<string, unknown>;
+    return res.status(400).json({ error: String(err.message ?? "Failed to fetch messages") });
+  }
+  const msgs = await msgsRes.json() as Array<Record<string, unknown>>;
+  const twoWeeksAgo = Date.now() - 14 * 24 * 60 * 60 * 1000;
+  const validIds = msgs
+    .filter(m => {
+      const ts = Number(BigInt(m.id as string) >> 22n) + 1420070400000;
+      return ts > twoWeeksAgo;
+    })
+    .map(m => m.id as string);
+  if (validIds.length === 0) return res.status(400).json({ error: "No messages found within the last 14 days to delete" });
+  if (validIds.length === 1) {
+    const delRes = await discordRequest(`/channels/${channelId}/messages/${validIds[0]}`, token, { method: "DELETE" });
+    if (!delRes.ok) return res.status(400).json({ error: "Failed to delete message" });
+  } else {
+    const bulkRes = await discordRequest(`/channels/${channelId}/messages/bulk-delete`, token, {
+      method: "POST",
+      body: JSON.stringify({ messages: validIds }),
+    });
+    if (!bulkRes.ok) {
+      const err = await bulkRes.json().catch(() => ({})) as Record<string, unknown>;
+      return res.status(400).json({ error: String(err.message ?? "Failed to bulk delete messages") });
+    }
+  }
+  return res.json({ success: true, message: `Deleted ${validIds.length} message(s) successfully` });
+});
+
 export default router;
 

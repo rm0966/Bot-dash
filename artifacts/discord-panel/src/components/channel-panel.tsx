@@ -71,7 +71,7 @@ export function ChannelPanel({ guildId, token, channels }: ChannelPanelProps) {
     );
   };
 
-  const sortedChannels = [...channels].sort((a, b) => a.position - b.position);
+  const sortedChannels = [...channels].sort((a, b) => ((a as any).position ?? 0) - ((b as any).position ?? 0));
 
   return (
     <div className="flex flex-col h-[600px]">

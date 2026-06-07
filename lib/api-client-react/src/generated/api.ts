@@ -29,15 +29,22 @@ import type {
   Channel,
   CreateAutoReplyInput,
   CreateChannelInput,
+  CreateInviteInput,
   CreateRoleInput,
+  DmInput,
   ErrorResponse,
   Guild,
+  GuildEmoji,
+  GuildOverview,
   HealthStatus,
   ImageMessageInput,
+  InviteResult,
   Member,
   MessageInput,
   ModerationInput,
   MuteInput,
+  NicknameInput,
+  PurgeInput,
   Role,
   TokenInput,
   Warning
@@ -1396,6 +1403,452 @@ export const useUnbanMember = <TError = ErrorType<ErrorResponse>,
         TContext
       > => {
       return useMutation(getUnbanMemberMutationOptions(options));
+    }
+
+export const getGetGuildOverviewUrl = (guildId: string,) => {
+
+
+
+
+  return `/api/discord/guilds/${guildId}/overview`
+}
+
+/**
+ * @summary Get guild overview info and stats
+ */
+export const getGuildOverview = async (guildId: string, options?: RequestInit): Promise<GuildOverview> => {
+
+  return customFetch<GuildOverview>(getGetGuildOverviewUrl(guildId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetGuildOverviewQueryKey = (guildId: string,) => {
+    return [
+    `/api/discord/guilds/${guildId}/overview`
+    ] as const;
+    }
+
+
+export const getGetGuildOverviewQueryOptions = <TData = Awaited<ReturnType<typeof getGuildOverview>>, TError = ErrorType<unknown>>(guildId: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getGuildOverview>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetGuildOverviewQueryKey(guildId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getGuildOverview>>> = ({ signal }) => getGuildOverview(guildId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(guildId), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getGuildOverview>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetGuildOverviewQueryResult = NonNullable<Awaited<ReturnType<typeof getGuildOverview>>>
+export type GetGuildOverviewQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get guild overview info and stats
+ */
+
+export function useGetGuildOverview<TData = Awaited<ReturnType<typeof getGuildOverview>>, TError = ErrorType<unknown>>(
+ guildId: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getGuildOverview>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetGuildOverviewQueryOptions(guildId,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetEmojisUrl = (guildId: string,) => {
+
+
+
+
+  return `/api/discord/guilds/${guildId}/emojis`
+}
+
+/**
+ * @summary Get all emojis in a guild
+ */
+export const getEmojis = async (guildId: string, options?: RequestInit): Promise<GuildEmoji[]> => {
+
+  return customFetch<GuildEmoji[]>(getGetEmojisUrl(guildId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetEmojisQueryKey = (guildId: string,) => {
+    return [
+    `/api/discord/guilds/${guildId}/emojis`
+    ] as const;
+    }
+
+
+export const getGetEmojisQueryOptions = <TData = Awaited<ReturnType<typeof getEmojis>>, TError = ErrorType<unknown>>(guildId: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getEmojis>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetEmojisQueryKey(guildId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getEmojis>>> = ({ signal }) => getEmojis(guildId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(guildId), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getEmojis>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetEmojisQueryResult = NonNullable<Awaited<ReturnType<typeof getEmojis>>>
+export type GetEmojisQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get all emojis in a guild
+ */
+
+export function useGetEmojis<TData = Awaited<ReturnType<typeof getEmojis>>, TError = ErrorType<unknown>>(
+ guildId: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getEmojis>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetEmojisQueryOptions(guildId,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getChangeNicknameUrl = (guildId: string,
+    userId: string,) => {
+
+
+
+
+  return `/api/discord/guilds/${guildId}/members/${userId}/nickname`
+}
+
+/**
+ * @summary Change a member's nickname
+ */
+export const changeNickname = async (guildId: string,
+    userId: string,
+    nicknameInput: NicknameInput, options?: RequestInit): Promise<ActionResult> => {
+
+  return customFetch<ActionResult>(getChangeNicknameUrl(guildId,userId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      nicknameInput,)
+  }
+);}
+
+
+
+
+export const getChangeNicknameMutationOptions = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof changeNickname>>, TError,{guildId: string;userId: string;data: BodyType<NicknameInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof changeNickname>>, TError,{guildId: string;userId: string;data: BodyType<NicknameInput>}, TContext> => {
+
+const mutationKey = ['changeNickname'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof changeNickname>>, {guildId: string;userId: string;data: BodyType<NicknameInput>}> = (props) => {
+          const {guildId,userId,data} = props ?? {};
+
+          return  changeNickname(guildId,userId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ChangeNicknameMutationResult = NonNullable<Awaited<ReturnType<typeof changeNickname>>>
+    export type ChangeNicknameMutationBody = BodyType<NicknameInput>
+    export type ChangeNicknameMutationError = ErrorType<ErrorResponse>
+
+    /**
+ * @summary Change a member's nickname
+ */
+export const useChangeNickname = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof changeNickname>>, TError,{guildId: string;userId: string;data: BodyType<NicknameInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof changeNickname>>,
+        TError,
+        {guildId: string;userId: string;data: BodyType<NicknameInput>},
+        TContext
+      > => {
+      return useMutation(getChangeNicknameMutationOptions(options));
+    }
+
+export const getSendDmUrl = (guildId: string,) => {
+
+
+
+
+  return `/api/discord/guilds/${guildId}/send-dm`
+}
+
+/**
+ * @summary Send a direct message to a user
+ */
+export const sendDm = async (guildId: string,
+    dmInput: DmInput, options?: RequestInit): Promise<ActionResult> => {
+
+  return customFetch<ActionResult>(getSendDmUrl(guildId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      dmInput,)
+  }
+);}
+
+
+
+
+export const getSendDmMutationOptions = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof sendDm>>, TError,{guildId: string;data: BodyType<DmInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof sendDm>>, TError,{guildId: string;data: BodyType<DmInput>}, TContext> => {
+
+const mutationKey = ['sendDm'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof sendDm>>, {guildId: string;data: BodyType<DmInput>}> = (props) => {
+          const {guildId,data} = props ?? {};
+
+          return  sendDm(guildId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SendDmMutationResult = NonNullable<Awaited<ReturnType<typeof sendDm>>>
+    export type SendDmMutationBody = BodyType<DmInput>
+    export type SendDmMutationError = ErrorType<ErrorResponse>
+
+    /**
+ * @summary Send a direct message to a user
+ */
+export const useSendDm = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof sendDm>>, TError,{guildId: string;data: BodyType<DmInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof sendDm>>,
+        TError,
+        {guildId: string;data: BodyType<DmInput>},
+        TContext
+      > => {
+      return useMutation(getSendDmMutationOptions(options));
+    }
+
+export const getCreateInviteUrl = (guildId: string,
+    channelId: string,) => {
+
+
+
+
+  return `/api/discord/guilds/${guildId}/channels/${channelId}/invite`
+}
+
+/**
+ * @summary Create an invite link for a channel
+ */
+export const createInvite = async (guildId: string,
+    channelId: string,
+    createInviteInput: CreateInviteInput, options?: RequestInit): Promise<InviteResult> => {
+
+  return customFetch<InviteResult>(getCreateInviteUrl(guildId,channelId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      createInviteInput,)
+  }
+);}
+
+
+
+
+export const getCreateInviteMutationOptions = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createInvite>>, TError,{guildId: string;channelId: string;data: BodyType<CreateInviteInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createInvite>>, TError,{guildId: string;channelId: string;data: BodyType<CreateInviteInput>}, TContext> => {
+
+const mutationKey = ['createInvite'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createInvite>>, {guildId: string;channelId: string;data: BodyType<CreateInviteInput>}> = (props) => {
+          const {guildId,channelId,data} = props ?? {};
+
+          return  createInvite(guildId,channelId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateInviteMutationResult = NonNullable<Awaited<ReturnType<typeof createInvite>>>
+    export type CreateInviteMutationBody = BodyType<CreateInviteInput>
+    export type CreateInviteMutationError = ErrorType<ErrorResponse>
+
+    /**
+ * @summary Create an invite link for a channel
+ */
+export const useCreateInvite = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createInvite>>, TError,{guildId: string;channelId: string;data: BodyType<CreateInviteInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createInvite>>,
+        TError,
+        {guildId: string;channelId: string;data: BodyType<CreateInviteInput>},
+        TContext
+      > => {
+      return useMutation(getCreateInviteMutationOptions(options));
+    }
+
+export const getPurgeMessagesUrl = (channelId: string,) => {
+
+
+
+
+  return `/api/discord/channels/${channelId}/purge`
+}
+
+/**
+ * @summary Bulk delete recent messages from a channel
+ */
+export const purgeMessages = async (channelId: string,
+    purgeInput: PurgeInput, options?: RequestInit): Promise<ActionResult> => {
+
+  return customFetch<ActionResult>(getPurgeMessagesUrl(channelId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      purgeInput,)
+  }
+);}
+
+
+
+
+export const getPurgeMessagesMutationOptions = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof purgeMessages>>, TError,{channelId: string;data: BodyType<PurgeInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof purgeMessages>>, TError,{channelId: string;data: BodyType<PurgeInput>}, TContext> => {
+
+const mutationKey = ['purgeMessages'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof purgeMessages>>, {channelId: string;data: BodyType<PurgeInput>}> = (props) => {
+          const {channelId,data} = props ?? {};
+
+          return  purgeMessages(channelId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PurgeMessagesMutationResult = NonNullable<Awaited<ReturnType<typeof purgeMessages>>>
+    export type PurgeMessagesMutationBody = BodyType<PurgeInput>
+    export type PurgeMessagesMutationError = ErrorType<ErrorResponse>
+
+    /**
+ * @summary Bulk delete recent messages from a channel
+ */
+export const usePurgeMessages = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof purgeMessages>>, TError,{channelId: string;data: BodyType<PurgeInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof purgeMessages>>,
+        TError,
+        {channelId: string;data: BodyType<PurgeInput>},
+        TContext
+      > => {
+      return useMutation(getPurgeMessagesMutationOptions(options));
     }
 
 export const getGetAutoRepliesUrl = (guildId: string,) => {
