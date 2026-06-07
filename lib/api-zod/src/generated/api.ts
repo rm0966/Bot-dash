@@ -198,6 +198,179 @@ export const WarnMemberResponse = zod.object({
 
 
 /**
+ * @summary Get all roles in a guild
+ */
+export const GetRolesParams = zod.object({
+  "guildId": zod.coerce.string()
+})
+
+export const GetRolesHeader = zod.object({
+  "X-Bot-Token": zod.string()
+})
+
+export const GetRolesResponseItem = zod.object({
+  "id": zod.string(),
+  "name": zod.string(),
+  "color": zod.number(),
+  "position": zod.number(),
+  "mentionable": zod.boolean(),
+  "managed": zod.boolean()
+})
+export const GetRolesResponse = zod.array(GetRolesResponseItem)
+
+
+/**
+ * @summary Create a new role in a guild
+ */
+export const CreateRoleParams = zod.object({
+  "guildId": zod.coerce.string()
+})
+
+export const CreateRoleBody = zod.object({
+  "token": zod.string(),
+  "name": zod.string(),
+  "color": zod.number().nullish(),
+  "mentionable": zod.boolean().nullish()
+})
+
+export const CreateRoleResponse = zod.object({
+  "success": zod.boolean(),
+  "message": zod.string()
+})
+
+
+/**
+ * @summary Delete a role from a guild
+ */
+export const DeleteRoleParams = zod.object({
+  "guildId": zod.coerce.string(),
+  "roleId": zod.coerce.string()
+})
+
+export const DeleteRoleBody = zod.object({
+  "token": zod.string()
+})
+
+export const DeleteRoleResponse = zod.object({
+  "success": zod.boolean(),
+  "message": zod.string()
+})
+
+
+/**
+ * @summary Add a role to a member
+ */
+export const AddMemberRoleParams = zod.object({
+  "guildId": zod.coerce.string(),
+  "userId": zod.coerce.string(),
+  "roleId": zod.coerce.string()
+})
+
+export const AddMemberRoleBody = zod.object({
+  "token": zod.string()
+})
+
+export const AddMemberRoleResponse = zod.object({
+  "success": zod.boolean(),
+  "message": zod.string()
+})
+
+
+/**
+ * @summary Remove a role from a member
+ */
+export const RemoveMemberRoleParams = zod.object({
+  "guildId": zod.coerce.string(),
+  "userId": zod.coerce.string(),
+  "roleId": zod.coerce.string()
+})
+
+export const RemoveMemberRoleBody = zod.object({
+  "token": zod.string()
+})
+
+export const RemoveMemberRoleResponse = zod.object({
+  "success": zod.boolean(),
+  "message": zod.string()
+})
+
+
+/**
+ * @summary Get list of banned members in a guild
+ */
+export const GetBansParams = zod.object({
+  "guildId": zod.coerce.string()
+})
+
+export const GetBansHeader = zod.object({
+  "X-Bot-Token": zod.string()
+})
+
+export const GetBansResponseItem = zod.object({
+  "userId": zod.string(),
+  "username": zod.string(),
+  "discriminator": zod.string(),
+  "avatar": zod.string().nullish(),
+  "reason": zod.string().nullish()
+})
+export const GetBansResponse = zod.array(GetBansResponseItem)
+
+
+/**
+ * @summary Unban a member from a guild
+ */
+export const UnbanMemberParams = zod.object({
+  "guildId": zod.coerce.string(),
+  "userId": zod.coerce.string()
+})
+
+export const UnbanMemberBody = zod.object({
+  "token": zod.string()
+})
+
+export const UnbanMemberResponse = zod.object({
+  "success": zod.boolean(),
+  "message": zod.string()
+})
+
+
+/**
+ * @summary Create a new channel in a guild
+ */
+export const CreateChannelParams = zod.object({
+  "guildId": zod.coerce.string()
+})
+
+export const CreateChannelBody = zod.object({
+  "token": zod.string(),
+  "name": zod.string(),
+  "type": zod.number()
+})
+
+export const CreateChannelResponse = zod.object({
+  "success": zod.boolean(),
+  "message": zod.string()
+})
+
+
+/**
+ * @summary Delete a channel
+ */
+export const DeleteChannelParams = zod.object({
+  "channelId": zod.coerce.string()
+})
+
+export const DeleteChannelBody = zod.object({
+  "token": zod.string()
+})
+
+export const DeleteChannelResponse = zod.object({
+  "success": zod.boolean(),
+  "message": zod.string()
+})
+
+
+/**
  * @summary Get all warnings for a member
  */
 export const GetMemberWarningsParams = zod.object({

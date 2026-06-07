@@ -92,3 +92,41 @@ export interface Warning {
   createdAt: string;
 }
 
+export interface TokenInput {
+  token: string;
+}
+
+export interface Role {
+  id: string;
+  name: string;
+  color: number;
+  position: number;
+  mentionable: boolean;
+  managed: boolean;
+}
+
+export interface BannedMember {
+  userId: string;
+  username: string;
+  discriminator: string;
+  /** @nullable */
+  avatar?: string | null;
+  /** @nullable */
+  reason?: string | null;
+}
+
+export interface CreateRoleInput {
+  token: string;
+  name: string;
+  /** @nullable */
+  color?: number | null;
+  /** @nullable */
+  mentionable?: boolean | null;
+}
+
+export interface CreateChannelInput {
+  token: string;
+  name: string;
+  type: number;
+}
+

@@ -233,4 +233,135 @@ router.get("/discord/guilds/:guildId/members/:userId/warnings", async (req, res)
   );
 });
 
+router.get("/discord/guilds/:guildId/roles", async (req, res) => {
+  const token = req.headers["x-bot-token"] as string;
+  const { guildId } = req.params;
+  if (!token) return res.status(401).json({ error: "Missing X-Bot-Token header" });
+  const r = await discordRequest(`/guilds/${guildId}/roles`, token);
+  if (!r.ok) return res.status(400).json({ error: "Failed to fetch roles" });
+  const roles = await r.json() as Array<Record<string, unknown>>;
+  return res.json(
+    roles.map((role) => ({
+      id: role.id,
+      name: role.name,
+      color: role.color ?? 0,
+      position: role.position ?? 0,
+      mentionable: role.mentionable ?? false,
+      managed: role.managed ?? false,
+    }))
+  );
+});
+
+router.post("/discord/guilds/:guildId/roles", async (req, res) => {
+  const { token, name, color, mentionable } = req.body;
+  const { guildId } = req.params;
+  if (!token || !name) return res.status(400).json({ error: "token and name are required" });
+  const r = await discordRequest(`/guilds/${guildId}/roles`, token, {
+    method: "POST",
+    body: JSON.stringify({ name, color: color ?? 0, mentionable: mentionable ?? false }),
+  });
+  if (!r.ok) {
+    const err = await r.json().catch(() => ({})) as Record<string, unknown>;
+    return res.status(400).json({ error: String(err.message ?? "Failed to create role") });
+  }
+  return res.json({ success: true, message: `Role "${name}" created successfully` });
+});
+
+router.post("/discord/guilds/:guildId/roles/:roleId/delete", async (req, res) => {
+  const { token } = req.body;
+  const { guildId, roleId } = req.params;
+  if (!token) return res.status(400).json({ error: "token is required" });
+  const r = await discordRequest(`/guilds/${guildId}/roles/${roleId}`, token, { method: "DELETE" });
+  if (!r.ok && r.status !== 204) {
+    const err = await r.json().catch(() => ({})) as Record<string, unknown>;
+    return res.status(400).json({ error: String(err.message ?? "Failed to delete role") });
+  }
+  return res.json({ success: true, message: "Role deleted successfully" });
+});
+
+router.post("/discord/guilds/:guildId/members/:userId/roles/:roleId/add", async (req, res) => {
+  const { token } = req.body;
+  const { guildId, userId, roleId } = req.params;
+  if (!token) return res.status(400).json({ error: "token is required" });
+  const r = await discordRequest(`/guilds/${guildId}/members/${userId}/roles/${roleId}`, token, { method: "PUT" });
+  if (!r.ok && r.status !== 204) {
+    const err = await r.json().catch(() => ({})) as Record<string, unknown>;
+    return res.status(400).json({ error: String(err.message ?? "Failed to add role") });
+  }
+  return res.json({ success: true, message: "Role added to member successfully" });
+});
+
+router.post("/discord/guilds/:guildId/members/:userId/roles/:roleId/remove", async (req, res) => {
+  const { token } = req.body;
+  const { guildId, userId, roleId } = req.params;
+  if (!token) return res.status(400).json({ error: "token is required" });
+  const r = await discordRequest(`/guilds/${guildId}/members/${userId}/roles/${roleId}`, token, { method: "DELETE" });
+  if (!r.ok && r.status !== 204) {
+    const err = await r.json().catch(() => ({})) as Record<string, unknown>;
+    return res.status(400).json({ error: String(err.message ?? "Failed to remove role") });
+  }
+  return res.json({ success: true, message: "Role removed from member successfully" });
+});
+
+router.get("/discord/guilds/:guildId/bans", async (req, res) => {
+  const token = req.headers["x-bot-token"] as string;
+  const { guildId } = req.params;
+  if (!token) return res.status(401).json({ error: "Missing X-Bot-Token header" });
+  const r = await discordRequest(`/guilds/${guildId}/bans`, token);
+  if (!r.ok) return res.status(400).json({ error: "Failed to fetch bans" });
+  const bans = await r.json() as Array<Record<string, unknown>>;
+  return res.json(
+    bans.map((b) => {
+      const user = b.user as Record<string, unknown>;
+      return {
+        userId: user?.id,
+        username: user?.username,
+        discriminator: user?.discriminator ?? "0",
+        avatar: user?.avatar ?? null,
+        reason: b.reason ?? null,
+      };
+    })
+  );
+});
+
+router.post("/discord/guilds/:guildId/bans/:userId/remove", async (req, res) => {
+  const { token } = req.body;
+  const { guildId, userId } = req.params;
+  if (!token) return res.status(400).json({ error: "token is required" });
+  const r = await discordRequest(`/guilds/${guildId}/bans/${userId}`, token, { method: "DELETE" });
+  if (!r.ok && r.status !== 204) {
+    const err = await r.json().catch(() => ({})) as Record<string, unknown>;
+    return res.status(400).json({ error: String(err.message ?? "Failed to unban member") });
+  }
+  return res.json({ success: true, message: "Member unbanned successfully" });
+});
+
+router.post("/discord/guilds/:guildId/channels/create", async (req, res) => {
+  const { token, name, type } = req.body;
+  const { guildId } = req.params;
+  if (!token || !name || type == null) return res.status(400).json({ error: "token, name, and type are required" });
+  const r = await discordRequest(`/guilds/${guildId}/channels`, token, {
+    method: "POST",
+    body: JSON.stringify({ name, type }),
+  });
+  if (!r.ok) {
+    const err = await r.json().catch(() => ({})) as Record<string, unknown>;
+    return res.status(400).json({ error: String(err.message ?? "Failed to create channel") });
+  }
+  return res.json({ success: true, message: `Channel "${name}" created successfully` });
+});
+
+router.post("/discord/channels/:channelId/delete", async (req, res) => {
+  const { token } = req.body;
+  const { channelId } = req.params;
+  if (!token) return res.status(400).json({ error: "token is required" });
+  const r = await discordRequest(`/channels/${channelId}`, token, { method: "DELETE" });
+  if (!r.ok) {
+    const err = await r.json().catch(() => ({})) as Record<string, unknown>;
+    return res.status(400).json({ error: String(err.message ?? "Failed to delete channel") });
+  }
+  return res.json({ success: true, message: "Channel deleted successfully" });
+});
+
 export default router;
+

@@ -317,6 +317,303 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
+  /discord/guilds/{guildId}/roles:
+    get:
+      operationId: getRoles
+      tags: [discord]
+      summary: Get all roles in a guild
+      parameters:
+        - name: guildId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: X-Bot-Token
+          in: header
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of roles
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Role"
+    post:
+      operationId: createRole
+      tags: [discord]
+      summary: Create a new role in a guild
+      parameters:
+        - name: guildId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateRoleInput"
+      responses:
+        "200":
+          description: Role created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ActionResult"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /discord/guilds/{guildId}/roles/{roleId}/delete:
+    post:
+      operationId: deleteRole
+      tags: [discord]
+      summary: Delete a role from a guild
+      parameters:
+        - name: guildId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: roleId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TokenInput"
+      responses:
+        "200":
+          description: Role deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ActionResult"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /discord/guilds/{guildId}/members/{userId}/roles/{roleId}/add:
+    post:
+      operationId: addMemberRole
+      tags: [discord]
+      summary: Add a role to a member
+      parameters:
+        - name: guildId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: roleId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TokenInput"
+      responses:
+        "200":
+          description: Role added
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ActionResult"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /discord/guilds/{guildId}/members/{userId}/roles/{roleId}/remove:
+    post:
+      operationId: removeMemberRole
+      tags: [discord]
+      summary: Remove a role from a member
+      parameters:
+        - name: guildId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: roleId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TokenInput"
+      responses:
+        "200":
+          description: Role removed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ActionResult"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /discord/guilds/{guildId}/bans:
+    get:
+      operationId: getBans
+      tags: [discord]
+      summary: Get list of banned members in a guild
+      parameters:
+        - name: guildId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: X-Bot-Token
+          in: header
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of bans
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/BannedMember"
+
+  /discord/guilds/{guildId}/bans/{userId}/remove:
+    post:
+      operationId: unbanMember
+      tags: [discord]
+      summary: Unban a member from a guild
+      parameters:
+        - name: guildId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TokenInput"
+      responses:
+        "200":
+          description: Member unbanned
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ActionResult"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /discord/guilds/{guildId}/channels/create:
+    post:
+      operationId: createChannel
+      tags: [discord]
+      summary: Create a new channel in a guild
+      parameters:
+        - name: guildId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateChannelInput"
+      responses:
+        "200":
+          description: Channel created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ActionResult"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /discord/channels/{channelId}/delete:
+    post:
+      operationId: deleteChannel
+      tags: [discord]
+      summary: Delete a channel
+      parameters:
+        - name: channelId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TokenInput"
+      responses:
+        "200":
+          description: Channel deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ActionResult"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
   /discord/guilds/{guildId}/members/{userId}/warnings:
     get:
       operationId: getMemberWarnings
@@ -527,3 +824,81 @@ components:
         - userId
         - reason
         - createdAt
+
+    TokenInput:
+      type: object
+      properties:
+        token:
+          type: string
+      required:
+        - token
+
+    Role:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        color:
+          type: integer
+        position:
+          type: integer
+        mentionable:
+          type: boolean
+        managed:
+          type: boolean
+      required:
+        - id
+        - name
+        - color
+        - position
+        - mentionable
+        - managed
+
+    BannedMember:
+      type: object
+      properties:
+        userId:
+          type: string
+        username:
+          type: string
+        discriminator:
+          type: string
+        avatar:
+          type: ["string", "null"]
+        reason:
+          type: ["string", "null"]
+      required:
+        - userId
+        - username
+        - discriminator
+
+    CreateRoleInput:
+      type: object
+      properties:
+        token:
+          type: string
+        name:
+          type: string
+        color:
+          type: ["integer", "null"]
+        mentionable:
+          type: ["boolean", "null"]
+      required:
+        - token
+        - name
+
+    CreateChannelInput:
+      type: object
+      properties:
+        token:
+          type: string
+        name:
+          type: string
+        type:
+          type: integer
+      required:
+        - token
+        - name
+        - type

@@ -2,11 +2,14 @@ import { useBot } from "@/hooks/use-bot";
 import { Redirect, useRoute } from "wouter";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useGetChannels, getGetChannelsQueryKey, useGetMembers, getGetMembersQueryKey } from "@workspace/api-client-react";
-import { Loader2, MessageSquare, Shield, Image as ImageIcon, ChevronLeft } from "lucide-react";
+import { Loader2, MessageSquare, Shield, Image as ImageIcon, ChevronLeft, ListTree, ShieldAlert, ShieldBan } from "lucide-react";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { MessagePanel } from "@/components/message-panel";
 import { ModerationPanel } from "@/components/moderation-panel";
+import { RolePanel } from "@/components/role-panel";
+import { BanPanel } from "@/components/ban-panel";
+import { ChannelPanel } from "@/components/channel-panel";
 
 export default function GuildDashboard() {
   const { token } = useBot();
@@ -47,7 +50,7 @@ function DashboardContent({ guildId, token }: { guildId: string; token: string }
   }
 
   return (
-    <div className="container mx-auto py-6 px-4 max-w-6xl">
+    <div className="container mx-auto py-6 px-4 max-w-[1200px]">
       <div className="mb-6 flex items-center">
         <Link href="/">
           <Button variant="ghost" size="sm" className="text-muted-foreground -ml-2">
@@ -58,18 +61,30 @@ function DashboardContent({ guildId, token }: { guildId: string; token: string }
       </div>
 
       <Tabs defaultValue="message" className="w-full">
-        <TabsList className="grid w-full grid-cols-3 mb-8 bg-card/50">
-          <TabsTrigger value="message" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+        <TabsList className="grid w-full grid-cols-2 md:grid-cols-3 lg:grid-cols-6 mb-8 bg-card/50 h-auto gap-1 p-1">
+          <TabsTrigger value="message" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground py-2">
             <MessageSquare className="h-4 w-4 mr-2" />
-            Send Message
+            Msg
           </TabsTrigger>
-          <TabsTrigger value="image" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+          <TabsTrigger value="image" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground py-2">
             <ImageIcon className="h-4 w-4 mr-2" />
-            Send Image
+            Img
           </TabsTrigger>
-          <TabsTrigger value="members" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+          <TabsTrigger value="channels" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground py-2">
+            <ListTree className="h-4 w-4 mr-2" />
+            Channels
+          </TabsTrigger>
+          <TabsTrigger value="roles" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground py-2">
+            <ShieldAlert className="h-4 w-4 mr-2" />
+            Roles
+          </TabsTrigger>
+          <TabsTrigger value="members" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground py-2">
             <Shield className="h-4 w-4 mr-2" />
-            Moderation
+            Members
+          </TabsTrigger>
+          <TabsTrigger value="bans" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground py-2">
+            <ShieldBan className="h-4 w-4 mr-2" />
+            Bans
           </TabsTrigger>
         </TabsList>
 
@@ -80,8 +95,17 @@ function DashboardContent({ guildId, token }: { guildId: string; token: string }
           <TabsContent value="image" className="m-0 border-0 outline-none">
             <MessagePanel channels={textChannels} token={token} type="image" />
           </TabsContent>
+          <TabsContent value="channels" className="m-0 border-0 outline-none">
+            <ChannelPanel guildId={guildId} token={token} channels={channels || []} />
+          </TabsContent>
+          <TabsContent value="roles" className="m-0 border-0 outline-none">
+            <RolePanel guildId={guildId} token={token} />
+          </TabsContent>
           <TabsContent value="members" className="m-0 border-0 outline-none">
             <ModerationPanel guildId={guildId} members={members || []} token={token} />
+          </TabsContent>
+          <TabsContent value="bans" className="m-0 border-0 outline-none">
+            <BanPanel guildId={guildId} token={token} />
           </TabsContent>
         </div>
       </Tabs>

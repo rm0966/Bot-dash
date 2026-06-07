@@ -1,14 +1,16 @@
 import { useState } from "react";
-import { Member, useKickMember, useBanMember, useMuteMember, useWarnMember, useGetMemberWarnings, getGetMemberWarningsQueryKey } from "@workspace/api-client-react";
+import { Member, useKickMember, useBanMember, useMuteMember, useWarnMember, useGetMemberWarnings, getGetMemberWarningsQueryKey, useGetRoles, getGetRolesQueryKey, useAddMemberRole, useRemoveMemberRole, getGetMembersQueryKey } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { getAvatarUrl } from "@/lib/discord-utils";
-import { Search, Gavel, Loader2, AlertTriangle, ShieldAlert, ShieldBan, ShieldOff, Shield } from "lucide-react";
+import { Search, Gavel, Loader2, AlertTriangle, ShieldAlert, ShieldBan, ShieldOff, Shield, Tags } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
+import { useQueryClient } from "@tanstack/react-query";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface ModerationPanelProps {
   guildId: string;
@@ -83,6 +85,7 @@ export function ModerationPanel({ guildId, members, token }: ModerationPanelProp
                 </td>
                 <td className="px-6 py-4 text-right">
                   <div className="flex justify-end gap-2">
+                    <ManageRolesDialog member={member} guildId={guildId} token={token} />
                     <ActionDialog member={member} guildId={guildId} token={token} type="warn" />
                     <ActionDialog member={member} guildId={guildId} token={token} type="mute" />
                     <ActionDialog member={member} guildId={guildId} token={token} type="kick" />
@@ -263,6 +266,115 @@ function WarningsDialog({ member, guildId, token }: { member: Member; guildId: s
             <div className="text-center py-8 text-muted-foreground bg-muted/20 rounded-md border border-dashed border-border">
               <Shield className="h-8 w-8 mx-auto mb-2 opacity-50" />
               <p>Clean record. No warnings found.</p>
+            </div>
+          )}
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function ManageRolesDialog({ member, guildId, token }: { member: Member; guildId: string; token: string }) {
+  const [open, setOpen] = useState(false);
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  const { data: roles, isLoading } = useGetRoles(guildId, {
+    query: {
+      queryKey: getGetRolesQueryKey(guildId),
+      enabled: open && !!guildId && !!token,
+    },
+    request: { headers: { "X-Bot-Token": token } }
+  });
+
+  const addRole = useAddMemberRole();
+  const removeRole = useRemoveMemberRole();
+
+  const isPending = addRole.isPending || removeRole.isPending;
+
+  const handleToggleRole = (roleId: string, hasRole: boolean) => {
+    if (hasRole) {
+      removeRole.mutate(
+        { guildId, userId: member.id, roleId, data: { token } },
+        {
+          onSuccess: (res: any) => {
+            if (res.success) {
+              toast({ title: "Role Removed", description: "Successfully removed role from member" });
+              queryClient.invalidateQueries({ queryKey: getGetMembersQueryKey(guildId) });
+            } else {
+              toast({ title: "Failed", description: res.message, variant: "destructive" });
+            }
+          },
+          onError: (err: any) => {
+            toast({ title: "Error", description: err.error || "Failed to remove role", variant: "destructive" });
+          }
+        }
+      );
+    } else {
+      addRole.mutate(
+        { guildId, userId: member.id, roleId, data: { token } },
+        {
+          onSuccess: (res: any) => {
+            if (res.success) {
+              toast({ title: "Role Added", description: "Successfully added role to member" });
+              queryClient.invalidateQueries({ queryKey: getGetMembersQueryKey(guildId) });
+            } else {
+              toast({ title: "Failed", description: res.message, variant: "destructive" });
+            }
+          },
+          onError: (err: any) => {
+            toast({ title: "Error", description: err.error || "Failed to add role", variant: "destructive" });
+          }
+        }
+      );
+    }
+  };
+
+  const sortedRoles = roles ? [...roles].sort((a, b) => b.position - a.position) : [];
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-muted" title="Manage Roles">
+          <Tags className="h-4 w-4 text-muted-foreground" />
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-[425px]">
+        <DialogHeader>
+          <DialogTitle>Manage Roles: {member.username}</DialogTitle>
+          <DialogDescription>
+            Assign or remove roles for this member.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="pt-4 max-h-[400px] overflow-y-auto pr-2">
+          {isLoading ? (
+            <div className="flex justify-center py-8"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
+          ) : (
+            <div className="space-y-3">
+              {sortedRoles.map(role => {
+                // @ts-ignore - roles in Member might just be IDs or object, depends on API response
+                const memberRoles = member.roles || [];
+                const hasRole = memberRoles.includes(role.id) || memberRoles.some((r: any) => r.id === role.id);
+                const hexColor = role.color === 0 ? null : '#' + role.color.toString(16).padStart(6, '0');
+                
+                return (
+                  <div key={role.id} className="flex items-center justify-between p-2 rounded-md hover:bg-muted/50 transition-colors border border-transparent hover:border-border">
+                    <div className="flex items-center gap-3">
+                      <Checkbox 
+                        id={`role-${role.id}`} 
+                        checked={hasRole} 
+                        disabled={isPending}
+                        onCheckedChange={() => handleToggleRole(role.id, hasRole)} 
+                      />
+                      <label htmlFor={`role-${role.id}`} className="flex items-center gap-2 cursor-pointer font-medium text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                        <div className="w-3 h-3 rounded-full" style={{ backgroundColor: hexColor || '#6b7280' }} />
+                        {role.name}
+                      </label>
+                    </div>
+                    {role.managed && <Badge variant="secondary" className="text-[10px]">Managed</Badge>}
+                  </div>
+                );
+              })}
             </div>
           )}
         </div>

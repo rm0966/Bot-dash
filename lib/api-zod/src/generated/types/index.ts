@@ -7,9 +7,12 @@
  */
 
 export * from './actionResult';
+export * from './bannedMember';
 export * from './botInfo';
 export * from './botTokenInput';
 export * from './channel';
+export * from './createChannelInput';
+export * from './createRoleInput';
 export * from './errorResponse';
 export * from './guild';
 export * from './healthStatus';
@@ -18,4 +21,6 @@ export * from './member';
 export * from './messageInput';
 export * from './moderationInput';
 export * from './muteInput';
+export * from './role';
+export * from './tokenInput';
 export * from './warning';
