@@ -1,6 +1,7 @@
 import { Router } from "express";
-import { db, warningsTable } from "@workspace/db";
+import { db, warningsTable, autoRepliesTable } from "@workspace/db";
 import { eq, and } from "drizzle-orm";
+import { activateGuild, deactivateGuild, isGuildActive } from "../lib/gateway-manager";
 
 const router = Router();
 
@@ -334,6 +335,74 @@ router.post("/discord/guilds/:guildId/bans/:userId/remove", async (req, res) => 
     return res.status(400).json({ error: String(err.message ?? "Failed to unban member") });
   }
   return res.json({ success: true, message: "Member unbanned successfully" });
+});
+
+router.get("/discord/guilds/:guildId/auto-replies", async (req, res) => {
+  const token = req.headers["x-bot-token"] as string;
+  const { guildId } = req.params;
+  if (!token) return res.status(401).json({ error: "Missing X-Bot-Token header" });
+  const rules = await db.select().from(autoRepliesTable).where(eq(autoRepliesTable.guildId, guildId));
+  return res.json(rules.map((r) => ({ ...r, createdAt: r.createdAt.toISOString() })));
+});
+
+router.post("/discord/guilds/:guildId/auto-replies", async (req, res) => {
+  const { token, trigger, response, matchType } = req.body;
+  const { guildId } = req.params;
+  if (!token || !trigger || !response) return res.status(400).json({ error: "token, trigger, and response are required" });
+  await db.insert(autoRepliesTable).values({
+    guildId,
+    trigger,
+    response,
+    matchType: matchType ?? "contains",
+    isActive: true,
+  });
+  return res.json({ success: true, message: "Auto-reply rule created" });
+});
+
+router.get("/discord/guilds/:guildId/auto-replies/status", async (req, res) => {
+  const token = req.headers["x-bot-token"] as string;
+  const { guildId } = req.params;
+  if (!token) return res.status(401).json({ error: "Missing X-Bot-Token header" });
+  return res.json({ active: isGuildActive(guildId), guildId });
+});
+
+router.post("/discord/guilds/:guildId/auto-replies/activate", async (req, res) => {
+  const { token } = req.body;
+  const { guildId } = req.params;
+  if (!token) return res.status(400).json({ error: "token is required" });
+  try {
+    await activateGuild(token, guildId);
+    return res.json({ success: true, message: "Auto-reply listener activated" });
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : "Failed to activate";
+    return res.status(400).json({ error: msg });
+  }
+});
+
+router.post("/discord/guilds/:guildId/auto-replies/deactivate", async (req, res) => {
+  const { token } = req.body;
+  const { guildId } = req.params;
+  if (!token) return res.status(400).json({ error: "token is required" });
+  await deactivateGuild(guildId);
+  return res.json({ success: true, message: "Auto-reply listener deactivated" });
+});
+
+router.post("/discord/guilds/:guildId/auto-replies/:ruleId/toggle", async (req, res) => {
+  const { token } = req.body;
+  const { guildId, ruleId } = req.params;
+  if (!token) return res.status(400).json({ error: "token is required" });
+  const [rule] = await db.select().from(autoRepliesTable).where(and(eq(autoRepliesTable.id, Number(ruleId)), eq(autoRepliesTable.guildId, guildId)));
+  if (!rule) return res.status(404).json({ error: "Rule not found" });
+  await db.update(autoRepliesTable).set({ isActive: !rule.isActive }).where(eq(autoRepliesTable.id, Number(ruleId)));
+  return res.json({ success: true, message: `Rule ${rule.isActive ? "disabled" : "enabled"}` });
+});
+
+router.post("/discord/guilds/:guildId/auto-replies/:ruleId/delete", async (req, res) => {
+  const { token } = req.body;
+  const { guildId, ruleId } = req.params;
+  if (!token) return res.status(400).json({ error: "token is required" });
+  await db.delete(autoRepliesTable).where(and(eq(autoRepliesTable.id, Number(ruleId)), eq(autoRepliesTable.guildId, guildId)));
+  return res.json({ success: true, message: "Rule deleted" });
 });
 
 router.post("/discord/guilds/:guildId/channels/create", async (req, res) => {

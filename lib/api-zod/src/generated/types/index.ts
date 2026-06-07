@@ -7,10 +7,13 @@
  */
 
 export * from './actionResult';
+export * from './autoReply';
+export * from './autoReplyStatus';
 export * from './bannedMember';
 export * from './botInfo';
 export * from './botTokenInput';
 export * from './channel';
+export * from './createAutoReplyInput';
 export * from './createChannelInput';
 export * from './createRoleInput';
 export * from './errorResponse';

@@ -130,3 +130,25 @@ export interface CreateChannelInput {
   type: number;
 }
 
+export interface AutoReply {
+  id: number;
+  guildId: string;
+  trigger: string;
+  response: string;
+  matchType: string;
+  isActive: boolean;
+  createdAt: string;
+}
+
+export interface AutoReplyStatus {
+  active: boolean;
+  guildId: string;
+}
+
+export interface CreateAutoReplyInput {
+  token: string;
+  trigger: string;
+  response: string;
+  matchType?: string;
+}
+

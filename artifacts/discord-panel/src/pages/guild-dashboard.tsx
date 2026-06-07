@@ -2,7 +2,7 @@ import { useBot } from "@/hooks/use-bot";
 import { Redirect, useRoute } from "wouter";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useGetChannels, getGetChannelsQueryKey, useGetMembers, getGetMembersQueryKey } from "@workspace/api-client-react";
-import { Loader2, MessageSquare, Shield, Image as ImageIcon, ChevronLeft, ListTree, ShieldAlert, ShieldBan } from "lucide-react";
+import { Loader2, MessageSquare, Shield, Image as ImageIcon, ChevronLeft, ListTree, ShieldAlert, ShieldBan, Zap } from "lucide-react";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { MessagePanel } from "@/components/message-panel";
@@ -10,6 +10,7 @@ import { ModerationPanel } from "@/components/moderation-panel";
 import { RolePanel } from "@/components/role-panel";
 import { BanPanel } from "@/components/ban-panel";
 import { ChannelPanel } from "@/components/channel-panel";
+import { AutoReplyPanel } from "@/components/auto-reply-panel";
 
 export default function GuildDashboard() {
   const { token } = useBot();
@@ -61,7 +62,7 @@ function DashboardContent({ guildId, token }: { guildId: string; token: string }
       </div>
 
       <Tabs defaultValue="message" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 md:grid-cols-3 lg:grid-cols-6 mb-8 bg-transparent border-b border-border h-auto gap-0 p-0 rounded-none">
+        <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 lg:grid-cols-7 mb-8 bg-transparent border-b border-border h-auto gap-0 p-0 rounded-none">
           <TabsTrigger value="message" className="data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none py-3 data-[state=active]:shadow-none">
             <MessageSquare className="h-4 w-4 mr-2" />
             Msg
@@ -86,6 +87,10 @@ function DashboardContent({ guildId, token }: { guildId: string; token: string }
             <ShieldBan className="h-4 w-4 mr-2" />
             Bans
           </TabsTrigger>
+          <TabsTrigger value="autoreply" className="data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none py-3 data-[state=active]:shadow-none">
+            <Zap className="h-4 w-4 mr-2" />
+            Auto-Reply
+          </TabsTrigger>
         </TabsList>
 
         <div className="bg-card border border-border rounded-xl shadow-sm overflow-hidden">
@@ -106,6 +111,9 @@ function DashboardContent({ guildId, token }: { guildId: string; token: string }
           </TabsContent>
           <TabsContent value="bans" className="m-0 border-0 outline-none">
             <BanPanel guildId={guildId} token={token} />
+          </TabsContent>
+          <TabsContent value="autoreply" className="m-0 border-0 outline-none">
+            <AutoReplyPanel guildId={guildId} token={token} />
           </TabsContent>
         </div>
       </Tabs>

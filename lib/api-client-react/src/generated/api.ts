@@ -21,10 +21,13 @@ import type {
 
 import type {
   ActionResult,
+  AutoReply,
+  AutoReplyStatus,
   BannedMember,
   BotInfo,
   BotTokenInput,
   Channel,
+  CreateAutoReplyInput,
   CreateChannelInput,
   CreateRoleInput,
   ErrorResponse,
@@ -1393,6 +1396,524 @@ export const useUnbanMember = <TError = ErrorType<ErrorResponse>,
         TContext
       > => {
       return useMutation(getUnbanMemberMutationOptions(options));
+    }
+
+export const getGetAutoRepliesUrl = (guildId: string,) => {
+
+
+
+
+  return `/api/discord/guilds/${guildId}/auto-replies`
+}
+
+/**
+ * @summary Get all auto-reply rules for a guild
+ */
+export const getAutoReplies = async (guildId: string, options?: RequestInit): Promise<AutoReply[]> => {
+
+  return customFetch<AutoReply[]>(getGetAutoRepliesUrl(guildId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetAutoRepliesQueryKey = (guildId: string,) => {
+    return [
+    `/api/discord/guilds/${guildId}/auto-replies`
+    ] as const;
+    }
+
+
+export const getGetAutoRepliesQueryOptions = <TData = Awaited<ReturnType<typeof getAutoReplies>>, TError = ErrorType<unknown>>(guildId: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAutoReplies>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetAutoRepliesQueryKey(guildId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAutoReplies>>> = ({ signal }) => getAutoReplies(guildId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(guildId), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getAutoReplies>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetAutoRepliesQueryResult = NonNullable<Awaited<ReturnType<typeof getAutoReplies>>>
+export type GetAutoRepliesQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get all auto-reply rules for a guild
+ */
+
+export function useGetAutoReplies<TData = Awaited<ReturnType<typeof getAutoReplies>>, TError = ErrorType<unknown>>(
+ guildId: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAutoReplies>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetAutoRepliesQueryOptions(guildId,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getCreateAutoReplyUrl = (guildId: string,) => {
+
+
+
+
+  return `/api/discord/guilds/${guildId}/auto-replies`
+}
+
+/**
+ * @summary Create a new auto-reply rule
+ */
+export const createAutoReply = async (guildId: string,
+    createAutoReplyInput: CreateAutoReplyInput, options?: RequestInit): Promise<ActionResult> => {
+
+  return customFetch<ActionResult>(getCreateAutoReplyUrl(guildId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      createAutoReplyInput,)
+  }
+);}
+
+
+
+
+export const getCreateAutoReplyMutationOptions = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createAutoReply>>, TError,{guildId: string;data: BodyType<CreateAutoReplyInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createAutoReply>>, TError,{guildId: string;data: BodyType<CreateAutoReplyInput>}, TContext> => {
+
+const mutationKey = ['createAutoReply'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createAutoReply>>, {guildId: string;data: BodyType<CreateAutoReplyInput>}> = (props) => {
+          const {guildId,data} = props ?? {};
+
+          return  createAutoReply(guildId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateAutoReplyMutationResult = NonNullable<Awaited<ReturnType<typeof createAutoReply>>>
+    export type CreateAutoReplyMutationBody = BodyType<CreateAutoReplyInput>
+    export type CreateAutoReplyMutationError = ErrorType<ErrorResponse>
+
+    /**
+ * @summary Create a new auto-reply rule
+ */
+export const useCreateAutoReply = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createAutoReply>>, TError,{guildId: string;data: BodyType<CreateAutoReplyInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createAutoReply>>,
+        TError,
+        {guildId: string;data: BodyType<CreateAutoReplyInput>},
+        TContext
+      > => {
+      return useMutation(getCreateAutoReplyMutationOptions(options));
+    }
+
+export const getGetAutoReplyStatusUrl = (guildId: string,) => {
+
+
+
+
+  return `/api/discord/guilds/${guildId}/auto-replies/status`
+}
+
+/**
+ * @summary Get auto-reply activation status for a guild
+ */
+export const getAutoReplyStatus = async (guildId: string, options?: RequestInit): Promise<AutoReplyStatus> => {
+
+  return customFetch<AutoReplyStatus>(getGetAutoReplyStatusUrl(guildId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetAutoReplyStatusQueryKey = (guildId: string,) => {
+    return [
+    `/api/discord/guilds/${guildId}/auto-replies/status`
+    ] as const;
+    }
+
+
+export const getGetAutoReplyStatusQueryOptions = <TData = Awaited<ReturnType<typeof getAutoReplyStatus>>, TError = ErrorType<unknown>>(guildId: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAutoReplyStatus>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetAutoReplyStatusQueryKey(guildId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAutoReplyStatus>>> = ({ signal }) => getAutoReplyStatus(guildId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(guildId), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getAutoReplyStatus>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetAutoReplyStatusQueryResult = NonNullable<Awaited<ReturnType<typeof getAutoReplyStatus>>>
+export type GetAutoReplyStatusQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get auto-reply activation status for a guild
+ */
+
+export function useGetAutoReplyStatus<TData = Awaited<ReturnType<typeof getAutoReplyStatus>>, TError = ErrorType<unknown>>(
+ guildId: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAutoReplyStatus>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetAutoReplyStatusQueryOptions(guildId,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getActivateAutoReplyUrl = (guildId: string,) => {
+
+
+
+
+  return `/api/discord/guilds/${guildId}/auto-replies/activate`
+}
+
+/**
+ * @summary Activate auto-reply listener for a guild
+ */
+export const activateAutoReply = async (guildId: string,
+    tokenInput: TokenInput, options?: RequestInit): Promise<ActionResult> => {
+
+  return customFetch<ActionResult>(getActivateAutoReplyUrl(guildId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      tokenInput,)
+  }
+);}
+
+
+
+
+export const getActivateAutoReplyMutationOptions = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof activateAutoReply>>, TError,{guildId: string;data: BodyType<TokenInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof activateAutoReply>>, TError,{guildId: string;data: BodyType<TokenInput>}, TContext> => {
+
+const mutationKey = ['activateAutoReply'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof activateAutoReply>>, {guildId: string;data: BodyType<TokenInput>}> = (props) => {
+          const {guildId,data} = props ?? {};
+
+          return  activateAutoReply(guildId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ActivateAutoReplyMutationResult = NonNullable<Awaited<ReturnType<typeof activateAutoReply>>>
+    export type ActivateAutoReplyMutationBody = BodyType<TokenInput>
+    export type ActivateAutoReplyMutationError = ErrorType<ErrorResponse>
+
+    /**
+ * @summary Activate auto-reply listener for a guild
+ */
+export const useActivateAutoReply = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof activateAutoReply>>, TError,{guildId: string;data: BodyType<TokenInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof activateAutoReply>>,
+        TError,
+        {guildId: string;data: BodyType<TokenInput>},
+        TContext
+      > => {
+      return useMutation(getActivateAutoReplyMutationOptions(options));
+    }
+
+export const getDeactivateAutoReplyUrl = (guildId: string,) => {
+
+
+
+
+  return `/api/discord/guilds/${guildId}/auto-replies/deactivate`
+}
+
+/**
+ * @summary Deactivate auto-reply listener for a guild
+ */
+export const deactivateAutoReply = async (guildId: string,
+    tokenInput: TokenInput, options?: RequestInit): Promise<ActionResult> => {
+
+  return customFetch<ActionResult>(getDeactivateAutoReplyUrl(guildId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      tokenInput,)
+  }
+);}
+
+
+
+
+export const getDeactivateAutoReplyMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deactivateAutoReply>>, TError,{guildId: string;data: BodyType<TokenInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deactivateAutoReply>>, TError,{guildId: string;data: BodyType<TokenInput>}, TContext> => {
+
+const mutationKey = ['deactivateAutoReply'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deactivateAutoReply>>, {guildId: string;data: BodyType<TokenInput>}> = (props) => {
+          const {guildId,data} = props ?? {};
+
+          return  deactivateAutoReply(guildId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeactivateAutoReplyMutationResult = NonNullable<Awaited<ReturnType<typeof deactivateAutoReply>>>
+    export type DeactivateAutoReplyMutationBody = BodyType<TokenInput>
+    export type DeactivateAutoReplyMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Deactivate auto-reply listener for a guild
+ */
+export const useDeactivateAutoReply = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deactivateAutoReply>>, TError,{guildId: string;data: BodyType<TokenInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deactivateAutoReply>>,
+        TError,
+        {guildId: string;data: BodyType<TokenInput>},
+        TContext
+      > => {
+      return useMutation(getDeactivateAutoReplyMutationOptions(options));
+    }
+
+export const getToggleAutoReplyUrl = (guildId: string,
+    ruleId: number,) => {
+
+
+
+
+  return `/api/discord/guilds/${guildId}/auto-replies/${ruleId}/toggle`
+}
+
+/**
+ * @summary Toggle an auto-reply rule on or off
+ */
+export const toggleAutoReply = async (guildId: string,
+    ruleId: number,
+    tokenInput: TokenInput, options?: RequestInit): Promise<ActionResult> => {
+
+  return customFetch<ActionResult>(getToggleAutoReplyUrl(guildId,ruleId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      tokenInput,)
+  }
+);}
+
+
+
+
+export const getToggleAutoReplyMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof toggleAutoReply>>, TError,{guildId: string;ruleId: number;data: BodyType<TokenInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof toggleAutoReply>>, TError,{guildId: string;ruleId: number;data: BodyType<TokenInput>}, TContext> => {
+
+const mutationKey = ['toggleAutoReply'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof toggleAutoReply>>, {guildId: string;ruleId: number;data: BodyType<TokenInput>}> = (props) => {
+          const {guildId,ruleId,data} = props ?? {};
+
+          return  toggleAutoReply(guildId,ruleId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ToggleAutoReplyMutationResult = NonNullable<Awaited<ReturnType<typeof toggleAutoReply>>>
+    export type ToggleAutoReplyMutationBody = BodyType<TokenInput>
+    export type ToggleAutoReplyMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Toggle an auto-reply rule on or off
+ */
+export const useToggleAutoReply = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof toggleAutoReply>>, TError,{guildId: string;ruleId: number;data: BodyType<TokenInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof toggleAutoReply>>,
+        TError,
+        {guildId: string;ruleId: number;data: BodyType<TokenInput>},
+        TContext
+      > => {
+      return useMutation(getToggleAutoReplyMutationOptions(options));
+    }
+
+export const getDeleteAutoReplyUrl = (guildId: string,
+    ruleId: number,) => {
+
+
+
+
+  return `/api/discord/guilds/${guildId}/auto-replies/${ruleId}/delete`
+}
+
+/**
+ * @summary Delete an auto-reply rule
+ */
+export const deleteAutoReply = async (guildId: string,
+    ruleId: number,
+    tokenInput: TokenInput, options?: RequestInit): Promise<ActionResult> => {
+
+  return customFetch<ActionResult>(getDeleteAutoReplyUrl(guildId,ruleId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      tokenInput,)
+  }
+);}
+
+
+
+
+export const getDeleteAutoReplyMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteAutoReply>>, TError,{guildId: string;ruleId: number;data: BodyType<TokenInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteAutoReply>>, TError,{guildId: string;ruleId: number;data: BodyType<TokenInput>}, TContext> => {
+
+const mutationKey = ['deleteAutoReply'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteAutoReply>>, {guildId: string;ruleId: number;data: BodyType<TokenInput>}> = (props) => {
+          const {guildId,ruleId,data} = props ?? {};
+
+          return  deleteAutoReply(guildId,ruleId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteAutoReplyMutationResult = NonNullable<Awaited<ReturnType<typeof deleteAutoReply>>>
+    export type DeleteAutoReplyMutationBody = BodyType<TokenInput>
+    export type DeleteAutoReplyMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Delete an auto-reply rule
+ */
+export const useDeleteAutoReply = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteAutoReply>>, TError,{guildId: string;ruleId: number;data: BodyType<TokenInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteAutoReply>>,
+        TError,
+        {guildId: string;ruleId: number;data: BodyType<TokenInput>},
+        TContext
+      > => {
+      return useMutation(getDeleteAutoReplyMutationOptions(options));
     }
 
 export const getCreateChannelUrl = (guildId: string,) => {

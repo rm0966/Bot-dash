@@ -335,6 +335,136 @@ export const UnbanMemberResponse = zod.object({
 
 
 /**
+ * @summary Get all auto-reply rules for a guild
+ */
+export const GetAutoRepliesParams = zod.object({
+  "guildId": zod.coerce.string()
+})
+
+export const GetAutoRepliesHeader = zod.object({
+  "X-Bot-Token": zod.string()
+})
+
+export const GetAutoRepliesResponseItem = zod.object({
+  "id": zod.number(),
+  "guildId": zod.string(),
+  "trigger": zod.string(),
+  "response": zod.string(),
+  "matchType": zod.string(),
+  "isActive": zod.boolean(),
+  "createdAt": zod.string()
+})
+export const GetAutoRepliesResponse = zod.array(GetAutoRepliesResponseItem)
+
+
+/**
+ * @summary Create a new auto-reply rule
+ */
+export const CreateAutoReplyParams = zod.object({
+  "guildId": zod.coerce.string()
+})
+
+export const CreateAutoReplyBody = zod.object({
+  "token": zod.string(),
+  "trigger": zod.string(),
+  "response": zod.string(),
+  "matchType": zod.string().optional()
+})
+
+export const CreateAutoReplyResponse = zod.object({
+  "success": zod.boolean(),
+  "message": zod.string()
+})
+
+
+/**
+ * @summary Get auto-reply activation status for a guild
+ */
+export const GetAutoReplyStatusParams = zod.object({
+  "guildId": zod.coerce.string()
+})
+
+export const GetAutoReplyStatusHeader = zod.object({
+  "X-Bot-Token": zod.string()
+})
+
+export const GetAutoReplyStatusResponse = zod.object({
+  "active": zod.boolean(),
+  "guildId": zod.string()
+})
+
+
+/**
+ * @summary Activate auto-reply listener for a guild
+ */
+export const ActivateAutoReplyParams = zod.object({
+  "guildId": zod.coerce.string()
+})
+
+export const ActivateAutoReplyBody = zod.object({
+  "token": zod.string()
+})
+
+export const ActivateAutoReplyResponse = zod.object({
+  "success": zod.boolean(),
+  "message": zod.string()
+})
+
+
+/**
+ * @summary Deactivate auto-reply listener for a guild
+ */
+export const DeactivateAutoReplyParams = zod.object({
+  "guildId": zod.coerce.string()
+})
+
+export const DeactivateAutoReplyBody = zod.object({
+  "token": zod.string()
+})
+
+export const DeactivateAutoReplyResponse = zod.object({
+  "success": zod.boolean(),
+  "message": zod.string()
+})
+
+
+/**
+ * @summary Toggle an auto-reply rule on or off
+ */
+export const ToggleAutoReplyParams = zod.object({
+  "guildId": zod.coerce.string(),
+  "ruleId": zod.coerce.number()
+})
+
+export const ToggleAutoReplyBody = zod.object({
+  "token": zod.string()
+})
+
+export const ToggleAutoReplyResponse = zod.object({
+  "success": zod.boolean(),
+  "message": zod.string()
+})
+
+
+/**
+ * @summary Delete an auto-reply rule
+ */
+export const DeleteAutoReplyParams = zod.object({
+  "guildId": zod.coerce.string(),
+  "ruleId": zod.coerce.number()
+})
+
+export const DeleteAutoReplyBody = zod.object({
+  "token": zod.string()
+})
+
+export const DeleteAutoReplyResponse = zod.object({
+  "success": zod.boolean(),
+  "message": zod.string()
+})
+
+
+/**
  * @summary Create a new channel in a guild
  */
 export const CreateChannelParams = zod.object({

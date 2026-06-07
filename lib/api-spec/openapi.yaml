@@ -552,6 +552,201 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
+  /discord/guilds/{guildId}/auto-replies:
+    get:
+      operationId: getAutoReplies
+      tags: [discord]
+      summary: Get all auto-reply rules for a guild
+      parameters:
+        - name: guildId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: X-Bot-Token
+          in: header
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of auto-reply rules
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AutoReply"
+    post:
+      operationId: createAutoReply
+      tags: [discord]
+      summary: Create a new auto-reply rule
+      parameters:
+        - name: guildId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateAutoReplyInput"
+      responses:
+        "200":
+          description: Rule created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ActionResult"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /discord/guilds/{guildId}/auto-replies/status:
+    get:
+      operationId: getAutoReplyStatus
+      tags: [discord]
+      summary: Get auto-reply activation status for a guild
+      parameters:
+        - name: guildId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: X-Bot-Token
+          in: header
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AutoReplyStatus"
+
+  /discord/guilds/{guildId}/auto-replies/activate:
+    post:
+      operationId: activateAutoReply
+      tags: [discord]
+      summary: Activate auto-reply listener for a guild
+      parameters:
+        - name: guildId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TokenInput"
+      responses:
+        "200":
+          description: Activated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ActionResult"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /discord/guilds/{guildId}/auto-replies/deactivate:
+    post:
+      operationId: deactivateAutoReply
+      tags: [discord]
+      summary: Deactivate auto-reply listener for a guild
+      parameters:
+        - name: guildId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TokenInput"
+      responses:
+        "200":
+          description: Deactivated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ActionResult"
+
+  /discord/guilds/{guildId}/auto-replies/{ruleId}/toggle:
+    post:
+      operationId: toggleAutoReply
+      tags: [discord]
+      summary: Toggle an auto-reply rule on or off
+      parameters:
+        - name: guildId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: ruleId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TokenInput"
+      responses:
+        "200":
+          description: Toggled
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ActionResult"
+
+  /discord/guilds/{guildId}/auto-replies/{ruleId}/delete:
+    post:
+      operationId: deleteAutoReply
+      tags: [discord]
+      summary: Delete an auto-reply rule
+      parameters:
+        - name: guildId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: ruleId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TokenInput"
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ActionResult"
+
   /discord/guilds/{guildId}/channels/create:
     post:
       operationId: createChannel
@@ -902,3 +1097,56 @@ components:
         - token
         - name
         - type
+
+    AutoReply:
+      type: object
+      properties:
+        id:
+          type: integer
+        guildId:
+          type: string
+        trigger:
+          type: string
+        response:
+          type: string
+        matchType:
+          type: string
+        isActive:
+          type: boolean
+        createdAt:
+          type: string
+      required:
+        - id
+        - guildId
+        - trigger
+        - response
+        - matchType
+        - isActive
+        - createdAt
+
+    AutoReplyStatus:
+      type: object
+      properties:
+        active:
+          type: boolean
+        guildId:
+          type: string
+      required:
+        - active
+        - guildId
+
+    CreateAutoReplyInput:
+      type: object
+      properties:
+        token:
+          type: string
+        trigger:
+          type: string
+        response:
+          type: string
+        matchType:
+          type: string
+      required:
+        - token
+        - trigger
+        - response
