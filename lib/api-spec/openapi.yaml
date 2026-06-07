@@ -1,22 +1,22 @@
 openapi: 3.1.0
 info:
-  # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: Discord Bot Panel API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: discord
+    description: Discord bot operations
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,6 +24,330 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /discord/connect:
+    post:
+      operationId: connectBot
+      tags: [discord]
+      summary: Connect bot with token and get bot info
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BotTokenInput"
+      responses:
+        "200":
+          description: Bot info
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BotInfo"
+        "401":
+          description: Invalid token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /discord/guilds:
+    get:
+      operationId: getGuilds
+      tags: [discord]
+      summary: Get all guilds the bot is in
+      parameters:
+        - name: X-Bot-Token
+          in: header
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of guilds
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Guild"
+
+  /discord/guilds/{guildId}/channels:
+    get:
+      operationId: getChannels
+      tags: [discord]
+      summary: Get channels in a guild
+      parameters:
+        - name: guildId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: X-Bot-Token
+          in: header
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of channels
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Channel"
+
+  /discord/guilds/{guildId}/members:
+    get:
+      operationId: getMembers
+      tags: [discord]
+      summary: Get members in a guild
+      parameters:
+        - name: guildId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: X-Bot-Token
+          in: header
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of members
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Member"
+
+  /discord/send-message:
+    post:
+      operationId: sendMessage
+      tags: [discord]
+      summary: Send a text message to a channel
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MessageInput"
+      responses:
+        "200":
+          description: Message sent
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ActionResult"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /discord/send-image:
+    post:
+      operationId: sendImage
+      tags: [discord]
+      summary: Send an image URL to a channel
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ImageMessageInput"
+      responses:
+        "200":
+          description: Image sent
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ActionResult"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /discord/guilds/{guildId}/members/{userId}/kick:
+    post:
+      operationId: kickMember
+      tags: [discord]
+      summary: Kick a member from a guild
+      parameters:
+        - name: guildId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ModerationInput"
+      responses:
+        "200":
+          description: Member kicked
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ActionResult"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /discord/guilds/{guildId}/members/{userId}/ban:
+    post:
+      operationId: banMember
+      tags: [discord]
+      summary: Ban a member from a guild
+      parameters:
+        - name: guildId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ModerationInput"
+      responses:
+        "200":
+          description: Member banned
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ActionResult"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /discord/guilds/{guildId}/members/{userId}/mute:
+    post:
+      operationId: muteMember
+      tags: [discord]
+      summary: Mute (timeout) a member in a guild
+      parameters:
+        - name: guildId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MuteInput"
+      responses:
+        "200":
+          description: Member muted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ActionResult"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /discord/guilds/{guildId}/members/{userId}/warn:
+    post:
+      operationId: warnMember
+      tags: [discord]
+      summary: Warn a member
+      parameters:
+        - name: guildId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ModerationInput"
+      responses:
+        "200":
+          description: Member warned
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ActionResult"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /discord/guilds/{guildId}/members/{userId}/warnings:
+    get:
+      operationId: getMemberWarnings
+      tags: [discord]
+      summary: Get all warnings for a member
+      parameters:
+        - name: guildId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: X-Bot-Token
+          in: header
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of warnings
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Warning"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +358,172 @@ components:
       required:
         - status
 
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
+
+    ActionResult:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+      required:
+        - success
+        - message
+
+    BotTokenInput:
+      type: object
+      properties:
+        token:
+          type: string
+      required:
+        - token
+
+    BotInfo:
+      type: object
+      properties:
+        id:
+          type: string
+        username:
+          type: string
+        discriminator:
+          type: string
+        avatar:
+          type: ["string", "null"]
+        verified:
+          type: boolean
+      required:
+        - id
+        - username
+        - discriminator
+        - verified
+
+    Guild:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        icon:
+          type: ["string", "null"]
+        memberCount:
+          type: ["integer", "null"]
+      required:
+        - id
+        - name
+
+    Channel:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        type:
+          type: integer
+      required:
+        - id
+        - name
+        - type
+
+    Member:
+      type: object
+      properties:
+        id:
+          type: string
+        username:
+          type: string
+        discriminator:
+          type: string
+        avatar:
+          type: ["string", "null"]
+        nickname:
+          type: ["string", "null"]
+        roles:
+          type: array
+          items:
+            type: string
+      required:
+        - id
+        - username
+        - discriminator
+
+    MessageInput:
+      type: object
+      properties:
+        token:
+          type: string
+        channelId:
+          type: string
+        content:
+          type: string
+      required:
+        - token
+        - channelId
+        - content
+
+    ImageMessageInput:
+      type: object
+      properties:
+        token:
+          type: string
+        channelId:
+          type: string
+        imageUrl:
+          type: string
+        caption:
+          type: ["string", "null"]
+      required:
+        - token
+        - channelId
+        - imageUrl
+
+    ModerationInput:
+      type: object
+      properties:
+        token:
+          type: string
+        reason:
+          type: ["string", "null"]
+      required:
+        - token
+
+    MuteInput:
+      type: object
+      properties:
+        token:
+          type: string
+        reason:
+          type: ["string", "null"]
+        durationMinutes:
+          type: integer
+      required:
+        - token
+        - durationMinutes
+
+    Warning:
+      type: object
+      properties:
+        id:
+          type: integer
+        guildId:
+          type: string
+        userId:
+          type: string
+        reason:
+          type: string
+        createdAt:
+          type: string
+      required:
+        - id
+        - guildId
+        - userId
+        - reason
+        - createdAt
