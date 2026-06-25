@@ -12,6 +12,8 @@ export * from './autoReplyStatus';
 export * from './bannedMember';
 export * from './botInfo';
 export * from './botTokenInput';
+export * from './broadcastInput';
+export * from './broadcastResult';
 export * from './channel';
 export * from './createAutoReplyInput';
 export * from './createChannelInput';

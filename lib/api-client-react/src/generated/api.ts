@@ -26,6 +26,8 @@ import type {
   BannedMember,
   BotInfo,
   BotTokenInput,
+  BroadcastInput,
+  BroadcastResult,
   Channel,
   CreateAutoReplyInput,
   CreateChannelInput,
@@ -1631,6 +1633,78 @@ export const useChangeNickname = <TError = ErrorType<ErrorResponse>,
         TContext
       > => {
       return useMutation(getChangeNicknameMutationOptions(options));
+    }
+
+export const getBroadcastDmUrl = (guildId: string,) => {
+
+
+
+
+  return `/api/discord/guilds/${guildId}/broadcast`
+}
+
+/**
+ * @summary Send a DM to all members in a guild
+ */
+export const broadcastDm = async (guildId: string,
+    broadcastInput: BroadcastInput, options?: RequestInit): Promise<BroadcastResult> => {
+
+  return customFetch<BroadcastResult>(getBroadcastDmUrl(guildId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      broadcastInput,)
+  }
+);}
+
+
+
+
+export const getBroadcastDmMutationOptions = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof broadcastDm>>, TError,{guildId: string;data: BodyType<BroadcastInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof broadcastDm>>, TError,{guildId: string;data: BodyType<BroadcastInput>}, TContext> => {
+
+const mutationKey = ['broadcastDm'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof broadcastDm>>, {guildId: string;data: BodyType<BroadcastInput>}> = (props) => {
+          const {guildId,data} = props ?? {};
+
+          return  broadcastDm(guildId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type BroadcastDmMutationResult = NonNullable<Awaited<ReturnType<typeof broadcastDm>>>
+    export type BroadcastDmMutationBody = BodyType<BroadcastInput>
+    export type BroadcastDmMutationError = ErrorType<ErrorResponse>
+
+    /**
+ * @summary Send a DM to all members in a guild
+ */
+export const useBroadcastDm = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof broadcastDm>>, TError,{guildId: string;data: BodyType<BroadcastInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof broadcastDm>>,
+        TError,
+        {guildId: string;data: BodyType<BroadcastInput>},
+        TContext
+      > => {
+      return useMutation(getBroadcastDmMutationOptions(options));
     }
 
 export const getSendDmUrl = (guildId: string,) => {

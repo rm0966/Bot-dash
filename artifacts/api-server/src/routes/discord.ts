@@ -494,6 +494,57 @@ router.post("/discord/guilds/:guildId/members/:userId/nickname", async (req, res
   return res.json({ success: true, message: nickname ? `Nickname changed to "${nickname}"` : "Nickname cleared" });
 });
 
+router.post("/discord/guilds/:guildId/broadcast", async (req, res) => {
+  const { token, content, skipBots } = req.body;
+  const { guildId } = req.params;
+  if (!token || !content) return res.status(400).json({ error: "token and content are required" });
+
+  const membersRes = await discordRequest(`/guilds/${guildId}/members?limit=1000`, token);
+  if (!membersRes.ok) {
+    const err = await membersRes.json().catch(() => ({})) as Record<string, unknown>;
+    return res.status(400).json({ error: String(err.message ?? "Failed to fetch members") });
+  }
+  const members = await membersRes.json() as Array<Record<string, unknown>>;
+
+  const targets = members.filter(m => {
+    const user = m.user as Record<string, unknown> | undefined;
+    if (!user) return false;
+    if (skipBots && user.bot) return false;
+    return true;
+  });
+
+  let sent = 0;
+  let failed = 0;
+
+  for (const m of targets) {
+    const user = m.user as Record<string, unknown>;
+    try {
+      const dmChan = await discordRequest("/users/@me/channels", token, {
+        method: "POST",
+        body: JSON.stringify({ recipient_id: user.id }),
+      });
+      if (!dmChan.ok) { failed++; continue; }
+      const chan = await dmChan.json() as Record<string, unknown>;
+      const sendRes = await discordRequest(`/channels/${chan.id}/messages`, token, {
+        method: "POST",
+        body: JSON.stringify({ content }),
+      });
+      if (sendRes.ok) { sent++; } else { failed++; }
+      await new Promise(r => setTimeout(r, 600));
+    } catch {
+      failed++;
+    }
+  }
+
+  return res.json({
+    success: true,
+    sent,
+    failed,
+    total: targets.length,
+    message: `Broadcast complete: ${sent} sent, ${failed} failed out of ${targets.length} members.`,
+  });
+});
+
 router.post("/discord/guilds/:guildId/send-dm", async (req, res) => {
   const { token, userId, content } = req.body;
   const { guildId } = req.params;

@@ -205,6 +205,20 @@ export interface InviteResult {
   expiresAt?: string | null;
 }
 
+export interface BroadcastInput {
+  token: string;
+  content: string;
+  skipBots?: boolean;
+}
+
+export interface BroadcastResult {
+  success: boolean;
+  sent: number;
+  failed: number;
+  total: number;
+  message: string;
+}
+
 export interface PurgeInput {
   token: string;
   count: number;

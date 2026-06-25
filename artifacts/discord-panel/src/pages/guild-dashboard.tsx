@@ -4,7 +4,7 @@ import { Redirect, useRoute } from "wouter";
 import { useGetChannels, getGetChannelsQueryKey, useGetMembers, getGetMembersQueryKey } from "@workspace/api-client-react";
 import {
   LayoutDashboard, MessageSquare, Image as ImageIcon, ListTree,
-  Shield, Users, ShieldBan, Smile, Link2, Trash2, Zap, ChevronLeft, Loader2, Menu, X
+  Shield, Users, ShieldBan, Smile, Link2, Trash2, Zap, Megaphone, ChevronLeft, Loader2, Menu
 } from "lucide-react";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
@@ -18,14 +18,16 @@ import { OverviewPanel } from "@/components/overview-panel";
 import { EmojiPanel } from "@/components/emoji-panel";
 import { InvitePanel } from "@/components/invite-panel";
 import { PurgePanel } from "@/components/purge-panel";
+import { BroadcastPanel } from "@/components/broadcast-panel";
 
 type NavSection =
   | "overview" | "message" | "image" | "channels"
   | "roles" | "members" | "bans" | "emojis"
-  | "invites" | "purge" | "autoreply";
+  | "invites" | "purge" | "autoreply" | "broadcast";
 
 const navItems: { id: NavSection; label: string; icon: React.ElementType; color?: string }[] = [
   { id: "overview", label: "Overview", icon: LayoutDashboard },
+  { id: "broadcast", label: "Broadcast DM", icon: Megaphone, color: "text-orange-400" },
   { id: "message", label: "Send Message", icon: MessageSquare },
   { id: "image", label: "Send Image", icon: ImageIcon },
   { id: "channels", label: "Channels", icon: ListTree },
@@ -40,6 +42,7 @@ const navItems: { id: NavSection; label: string; icon: React.ElementType; color?
 
 const sectionTitles: Record<NavSection, string> = {
   overview: "Server Overview",
+  broadcast: "Broadcast DM",
   message: "Send Message",
   image: "Send Image",
   channels: "Manage Channels",
@@ -81,6 +84,7 @@ function DashboardContent({ guildId, token }: { guildId: string; token: string }
 
   const renderContent = () => {
     if (active === "overview") return <OverviewPanel guildId={guildId} token={token} />;
+    if (active === "broadcast") return <BroadcastPanel guildId={guildId} token={token} />;
     if (active === "message") return <MessagePanel channels={textChannels} token={token} type="text" />;
     if (active === "image") return <MessagePanel channels={textChannels} token={token} type="image" />;
     if (active === "channels") return <ChannelPanel guildId={guildId} token={token} channels={channels || []} />;
