@@ -1,7 +1,8 @@
 import { Router } from "express";
 import { db, warningsTable, autoRepliesTable } from "@workspace/db";
 import { eq, and } from "drizzle-orm";
-import { activateGuild, deactivateGuild, isGuildActive } from "../lib/gateway-manager";
+import { activateGuild, deactivateGuild, isGuildActive, configureAI, getAIConfig, clearAIHistory } from "../lib/gateway-manager";
+import { createJob, updateJob, getJob } from "../lib/broadcast-manager";
 
 const router = Router();
 
@@ -494,6 +495,61 @@ router.post("/discord/guilds/:guildId/members/:userId/nickname", async (req, res
   return res.json({ success: true, message: nickname ? `Nickname changed to "${nickname}"` : "Nickname cleared" });
 });
 
+// ── AI Session Routes ──────────────────────────────────────────────────────
+
+router.get("/discord/guilds/:guildId/ai-session", (req, res) => {
+  const { guildId } = req.params;
+  const active = isGuildActive(guildId);
+  const cfg = getAIConfig(guildId);
+  return res.json({
+    active,
+    enabled: cfg?.enabled ?? false,
+    channels: cfg?.channels ?? [],
+    systemPrompt: cfg?.systemPrompt ?? "أنت مساعد ذكي ومفيد في سيرفر ديسكورد. أجب بإيجاز وأدب.",
+  });
+});
+
+router.post("/discord/guilds/:guildId/ai-session", async (req, res) => {
+  const { token, enabled, channels, systemPrompt } = req.body;
+  const { guildId } = req.params;
+  if (!token) return res.status(400).json({ error: "token is required" });
+  try {
+    if (!isGuildActive(guildId)) {
+      await activateGuild(token, guildId);
+    }
+    configureAI(guildId, {
+      enabled: enabled ?? false,
+      channels: channels ?? [],
+      systemPrompt: systemPrompt ?? "أنت مساعد ذكي ومفيد في سيرفر ديسكورد. أجب بإيجاز وأدب.",
+    });
+    return res.json({ success: true, active: true });
+  } catch (e: any) {
+    return res.status(400).json({ error: e?.message ?? "Failed to start AI session" });
+  }
+});
+
+router.delete("/discord/guilds/:guildId/ai-session", async (req, res) => {
+  const { guildId } = req.params;
+  await deactivateGuild(guildId);
+  return res.json({ success: true });
+});
+
+router.delete("/discord/guilds/:guildId/ai-session/history", (req, res) => {
+  const { guildId } = req.params;
+  clearAIHistory(guildId);
+  return res.json({ success: true });
+});
+
+// ── Job Status ─────────────────────────────────────────────────────────────
+
+router.get("/discord/broadcast-jobs/:jobId", (req, res) => {
+  const job = getJob(req.params.jobId);
+  if (!job) return res.status(404).json({ error: "Job not found" });
+  return res.json(job);
+});
+
+// ── Broadcast All (job-based) ──────────────────────────────────────────────
+
 router.post("/discord/broadcast-all", async (req, res) => {
   const { token, content, skipBots } = req.body;
   if (!token || !content) return res.status(400).json({ error: "token and content are required" });
@@ -506,7 +562,6 @@ router.post("/discord/broadcast-all", async (req, res) => {
   const guilds = await guildsRes.json() as Array<Record<string, unknown>>;
 
   const seenUserIds = new Set<string>();
-
   for (const guild of guilds) {
     const membersRes = await discordRequest(`/guilds/${guild.id}/members?limit=1000`, token);
     if (!membersRes.ok) continue;
@@ -519,37 +574,35 @@ router.post("/discord/broadcast-all", async (req, res) => {
     }
   }
 
-  let sent = 0;
-  let failed = 0;
-  const total = seenUserIds.size;
+  const job = createJob(seenUserIds.size);
+  res.json({ jobId: job.id, total: job.total });
 
-  for (const userId of seenUserIds) {
-    try {
-      const dmChan = await discordRequest("/users/@me/channels", token, {
-        method: "POST",
-        body: JSON.stringify({ recipient_id: userId }),
-      });
-      if (!dmChan.ok) { failed++; continue; }
-      const chan = await dmChan.json() as Record<string, unknown>;
-      const sendRes = await discordRequest(`/channels/${chan.id}/messages`, token, {
-        method: "POST",
-        body: JSON.stringify({ content }),
-      });
-      if (sendRes.ok) { sent++; } else { failed++; }
-      await new Promise(r => setTimeout(r, 600));
-    } catch {
-      failed++;
+  // Run in background
+  (async () => {
+    for (const userId of seenUserIds) {
+      try {
+        const dmChan = await discordRequest("/users/@me/channels", token, {
+          method: "POST",
+          body: JSON.stringify({ recipient_id: userId }),
+        });
+        if (!dmChan.ok) { updateJob(job.id, { failed: job.failed + 1 }); continue; }
+        const chan = await dmChan.json() as Record<string, unknown>;
+        const sendRes = await discordRequest(`/channels/${chan.id}/messages`, token, {
+          method: "POST",
+          body: JSON.stringify({ content }),
+        });
+        if (sendRes.ok) { job.sent++; } else { job.failed++; }
+        await new Promise(r => setTimeout(r, 600));
+      } catch { job.failed++; }
     }
-  }
-
-  return res.json({
-    success: true,
-    sent,
-    failed,
-    total,
-    message: `Global broadcast complete: ${sent} sent, ${failed} failed out of ${total} unique members.`,
-  });
+    updateJob(job.id, {
+      status: "done",
+      message: `اكتمل: ${job.sent} وصلت، ${job.failed} فشلت من أصل ${job.total}.`,
+    });
+  })();
 });
+
+// ── Broadcast Guild (job-based) ────────────────────────────────────────────
 
 router.post("/discord/guilds/:guildId/broadcast", async (req, res) => {
   const { token, content, skipBots } = req.body;
@@ -562,7 +615,6 @@ router.post("/discord/guilds/:guildId/broadcast", async (req, res) => {
     return res.status(400).json({ error: String(err.message ?? "Failed to fetch members") });
   }
   const members = await membersRes.json() as Array<Record<string, unknown>>;
-
   const targets = members.filter(m => {
     const user = m.user as Record<string, unknown> | undefined;
     if (!user) return false;
@@ -570,36 +622,33 @@ router.post("/discord/guilds/:guildId/broadcast", async (req, res) => {
     return true;
   });
 
-  let sent = 0;
-  let failed = 0;
+  const job = createJob(targets.length);
+  res.json({ jobId: job.id, total: job.total });
 
-  for (const m of targets) {
-    const user = m.user as Record<string, unknown>;
-    try {
-      const dmChan = await discordRequest("/users/@me/channels", token, {
-        method: "POST",
-        body: JSON.stringify({ recipient_id: user.id }),
-      });
-      if (!dmChan.ok) { failed++; continue; }
-      const chan = await dmChan.json() as Record<string, unknown>;
-      const sendRes = await discordRequest(`/channels/${chan.id}/messages`, token, {
-        method: "POST",
-        body: JSON.stringify({ content }),
-      });
-      if (sendRes.ok) { sent++; } else { failed++; }
-      await new Promise(r => setTimeout(r, 600));
-    } catch {
-      failed++;
+  // Run in background
+  (async () => {
+    for (const m of targets) {
+      const user = m.user as Record<string, unknown>;
+      try {
+        const dmChan = await discordRequest("/users/@me/channels", token, {
+          method: "POST",
+          body: JSON.stringify({ recipient_id: user.id }),
+        });
+        if (!dmChan.ok) { job.failed++; continue; }
+        const chan = await dmChan.json() as Record<string, unknown>;
+        const sendRes = await discordRequest(`/channels/${chan.id}/messages`, token, {
+          method: "POST",
+          body: JSON.stringify({ content }),
+        });
+        if (sendRes.ok) { job.sent++; } else { job.failed++; }
+        await new Promise(r => setTimeout(r, 600));
+      } catch { job.failed++; }
     }
-  }
-
-  return res.json({
-    success: true,
-    sent,
-    failed,
-    total: targets.length,
-    message: `Broadcast complete: ${sent} sent, ${failed} failed out of ${targets.length} members.`,
-  });
+    updateJob(job.id, {
+      status: "done",
+      message: `اكتمل: ${job.sent} وصلت، ${job.failed} فشلت من أصل ${job.total}.`,
+    });
+  })();
 });
 
 router.post("/discord/guilds/:guildId/send-dm", async (req, res) => {
