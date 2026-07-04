@@ -494,6 +494,63 @@ router.post("/discord/guilds/:guildId/members/:userId/nickname", async (req, res
   return res.json({ success: true, message: nickname ? `Nickname changed to "${nickname}"` : "Nickname cleared" });
 });
 
+router.post("/discord/broadcast-all", async (req, res) => {
+  const { token, content, skipBots } = req.body;
+  if (!token || !content) return res.status(400).json({ error: "token and content are required" });
+
+  const guildsRes = await discordRequest("/users/@me/guilds", token);
+  if (!guildsRes.ok) {
+    const err = await guildsRes.json().catch(() => ({})) as Record<string, unknown>;
+    return res.status(400).json({ error: String(err.message ?? "Failed to fetch guilds") });
+  }
+  const guilds = await guildsRes.json() as Array<Record<string, unknown>>;
+
+  const seenUserIds = new Set<string>();
+
+  for (const guild of guilds) {
+    const membersRes = await discordRequest(`/guilds/${guild.id}/members?limit=1000`, token);
+    if (!membersRes.ok) continue;
+    const members = await membersRes.json() as Array<Record<string, unknown>>;
+    for (const m of members) {
+      const user = m.user as Record<string, unknown> | undefined;
+      if (!user || !user.id) continue;
+      if (skipBots && user.bot) continue;
+      seenUserIds.add(String(user.id));
+    }
+  }
+
+  let sent = 0;
+  let failed = 0;
+  const total = seenUserIds.size;
+
+  for (const userId of seenUserIds) {
+    try {
+      const dmChan = await discordRequest("/users/@me/channels", token, {
+        method: "POST",
+        body: JSON.stringify({ recipient_id: userId }),
+      });
+      if (!dmChan.ok) { failed++; continue; }
+      const chan = await dmChan.json() as Record<string, unknown>;
+      const sendRes = await discordRequest(`/channels/${chan.id}/messages`, token, {
+        method: "POST",
+        body: JSON.stringify({ content }),
+      });
+      if (sendRes.ok) { sent++; } else { failed++; }
+      await new Promise(r => setTimeout(r, 600));
+    } catch {
+      failed++;
+    }
+  }
+
+  return res.json({
+    success: true,
+    sent,
+    failed,
+    total,
+    message: `Global broadcast complete: ${sent} sent, ${failed} failed out of ${total} unique members.`,
+  });
+});
+
 router.post("/discord/guilds/:guildId/broadcast", async (req, res) => {
   const { token, content, skipBots } = req.body;
   const { guildId } = req.params;

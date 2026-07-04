@@ -75,40 +75,40 @@
   --elevate-1: rgba(0,0,0, .03);
   --elevate-2: rgba(0,0,0, .08);
 
-  --background: 250 30% 98%;
-  --foreground: 252 25% 15%;
-  --border: 250 25% 88%;
+  --background: 216 30% 97%;
+  --foreground: 215 25% 15%;
+  --border: 216 20% 87%;
   --card: 0 0% 100%;
-  --card-foreground: 252 25% 15%;
-  --card-border: 250 25% 88%;
-  --sidebar: 250 30% 96%;
-  --sidebar-foreground: 252 25% 15%;
-  --sidebar-border: 250 25% 88%;
-  --sidebar-primary: 258 90% 60%;
+  --card-foreground: 215 25% 15%;
+  --card-border: 216 20% 87%;
+  --sidebar: 216 25% 94%;
+  --sidebar-foreground: 215 25% 15%;
+  --sidebar-border: 216 20% 87%;
+  --sidebar-primary: 213 75% 52%;
   --sidebar-primary-foreground: 0 0% 100%;
-  --sidebar-accent: 250 25% 90%;
-  --sidebar-accent-foreground: 252 25% 15%;
-  --sidebar-ring: 258 90% 60%;
+  --sidebar-accent: 216 20% 90%;
+  --sidebar-accent-foreground: 215 25% 15%;
+  --sidebar-ring: 213 75% 52%;
   --popover: 0 0% 100%;
-  --popover-foreground: 252 25% 15%;
-  --popover-border: 250 25% 88%;
-  --primary: 258 90% 60%;
+  --popover-foreground: 215 25% 15%;
+  --popover-border: 216 20% 87%;
+  --primary: 213 75% 52%;
   --primary-foreground: 0 0% 100%;
-  --secondary: 250 25% 92%;
-  --secondary-foreground: 252 25% 20%;
-  --muted: 250 30% 96%;
-  --muted-foreground: 252 15% 48%;
-  --accent: 250 25% 92%;
-  --accent-foreground: 252 25% 15%;
-  --destructive: 0 84% 60%;
+  --secondary: 216 20% 90%;
+  --secondary-foreground: 215 25% 20%;
+  --muted: 216 25% 95%;
+  --muted-foreground: 215 15% 48%;
+  --accent: 216 20% 90%;
+  --accent-foreground: 215 25% 15%;
+  --destructive: 4 80% 56%;
   --destructive-foreground: 0 0% 100%;
-  --input: 250 25% 88%;
-  --ring: 258 90% 60%;
-  --chart-1: 258 90% 60%;
-  --chart-2: 250 25% 88%;
-  --chart-3: 258 60% 50%;
-  --chart-4: 0 84% 60%;
-  --chart-5: 45 100% 50%;
+  --input: 216 20% 87%;
+  --ring: 213 75% 52%;
+  --chart-1: 213 75% 52%;
+  --chart-2: 216 20% 80%;
+  --chart-3: 180 55% 45%;
+  --chart-4: 4 80% 56%;
+  --chart-5: 38 95% 52%;
   --app-font-sans: 'Inter', sans-serif;
   --app-font-serif: Georgia, serif;
   --app-font-mono: 'JetBrains Mono', Menlo, monospace;
@@ -133,67 +133,67 @@
 }
 
 .dark {
-  --button-outline: rgba(255,255,255, .10);
+  --button-outline: rgba(255,255,255, .08);
   --badge-outline: rgba(255,255,255, .05);
   --opaque-button-border-intensity: 9;
-  --elevate-1: rgba(255,255,255, .04);
-  --elevate-2: rgba(255,255,255, .09);
+  --elevate-1: rgba(255,255,255, .03);
+  --elevate-2: rgba(255,255,255, .07);
 
-  /* Deep Violet Command Center */
-  --background: 252 28% 5%;
-  --foreground: 250 30% 92%;
-  --border: 252 22% 14%;
+  /* Calm Dark Navy — easy on the eyes */
+  --background: 215 25% 8%;
+  --foreground: 210 18% 88%;
+  --border: 215 18% 17%;
 
-  --card: 252 26% 8%;
-  --card-foreground: 250 30% 92%;
-  --card-border: 252 22% 14%;
+  --card: 215 22% 11%;
+  --card-foreground: 210 18% 88%;
+  --card-border: 215 18% 17%;
 
-  --sidebar: 252 30% 4%;
-  --sidebar-foreground: 250 30% 88%;
-  --sidebar-border: 252 22% 11%;
-  --sidebar-primary: 258 90% 68%;
+  --sidebar: 215 28% 6%;
+  --sidebar-foreground: 210 15% 84%;
+  --sidebar-border: 215 18% 13%;
+  --sidebar-primary: 213 72% 62%;
   --sidebar-primary-foreground: 0 0% 100%;
-  --sidebar-accent: 252 28% 12%;
-  --sidebar-accent-foreground: 258 60% 82%;
-  --sidebar-ring: 258 90% 68%;
+  --sidebar-accent: 215 22% 14%;
+  --sidebar-accent-foreground: 213 60% 78%;
+  --sidebar-ring: 213 72% 62%;
 
-  --popover: 252 28% 7%;
-  --popover-foreground: 250 30% 92%;
-  --popover-border: 252 22% 14%;
+  --popover: 215 24% 10%;
+  --popover-foreground: 210 18% 88%;
+  --popover-border: 215 18% 17%;
 
-  /* Primary - Violet */
-  --primary: 258 90% 68%;
+  /* Primary — calm steel blue */
+  --primary: 213 72% 62%;
   --primary-foreground: 0 0% 100%;
 
-  --secondary: 252 25% 11%;
-  --secondary-foreground: 250 40% 88%;
+  --secondary: 215 20% 14%;
+  --secondary-foreground: 210 20% 82%;
 
-  --muted: 252 24% 8%;
-  --muted-foreground: 252 15% 52%;
+  --muted: 215 20% 10%;
+  --muted-foreground: 215 12% 52%;
 
-  --accent: 252 28% 13%;
-  --accent-foreground: 258 60% 82%;
+  --accent: 215 22% 14%;
+  --accent-foreground: 213 55% 78%;
 
-  --destructive: 0 84% 60%;
+  --destructive: 4 72% 56%;
   --destructive-foreground: 0 0% 100%;
 
-  --input: 252 25% 10%;
-  --ring: 258 90% 68%;
+  --input: 215 20% 12%;
+  --ring: 213 72% 62%;
 
-  --chart-1: 258 90% 68%;
-  --chart-2: 252 25% 20%;
-  --chart-3: 258 60% 55%;
-  --chart-4: 0 84% 60%;
-  --chart-5: 45 100% 55%;
+  --chart-1: 213 72% 62%;
+  --chart-2: 215 20% 22%;
+  --chart-3: 180 55% 48%;
+  --chart-4: 4 72% 56%;
+  --chart-5: 38 95% 55%;
 
-  --shadow-2xs: 0px 2px 0px 0px rgba(0,0,0,0.4);
-  --shadow-xs: 0px 2px 0px 0px rgba(0,0,0,0.4);
-  --shadow-sm: 0px 2px 0px 0px rgba(0,0,0,0.4), 0px 1px 2px -1px rgba(0,0,0,0.4);
-  --shadow: 0px 2px 0px 0px rgba(0,0,0,0.4), 0px 1px 2px -1px rgba(0,0,0,0.4);
-  --shadow-md: 0px 2px 0px 0px rgba(0,0,0,0.4), 0px 2px 4px -1px rgba(0,0,0,0.4);
-  --shadow-lg: 0px 2px 0px 0px rgba(0,0,0,0.4), 0px 4px 6px -1px rgba(0,0,0,0.4);
-  --shadow-xl: 0px 2px 0px 0px rgba(0,0,0,0.4), 0px 8px 10px -1px rgba(0,0,0,0.4);
-  --shadow-2xl: 0px 2px 0px 0px rgba(0,0,0,0.4);
+  --shadow-2xs: 0px 2px 0px 0px rgba(0,0,0,0.35);
+  --shadow-xs: 0px 2px 0px 0px rgba(0,0,0,0.35);
+  --shadow-sm: 0px 2px 0px 0px rgba(0,0,0,0.35), 0px 1px 2px -1px rgba(0,0,0,0.35);
+  --shadow: 0px 2px 0px 0px rgba(0,0,0,0.35), 0px 1px 2px -1px rgba(0,0,0,0.35);
+  --shadow-md: 0px 2px 0px 0px rgba(0,0,0,0.35), 0px 2px 4px -1px rgba(0,0,0,0.35);
+  --shadow-lg: 0px 2px 0px 0px rgba(0,0,0,0.35), 0px 4px 6px -1px rgba(0,0,0,0.35);
+  --shadow-xl: 0px 2px 0px 0px rgba(0,0,0,0.35), 0px 8px 10px -1px rgba(0,0,0,0.35);
+  --shadow-2xl: 0px 2px 0px 0px rgba(0,0,0,0.35);
 }
 
 @layer base {
@@ -266,11 +266,11 @@
     inset: -1px;
   }
 
-  .glow-violet {
-    box-shadow: 0 0 20px rgba(124, 90, 240, 0.3);
+  .glow-blue {
+    box-shadow: 0 0 20px rgba(66, 133, 220, 0.25);
   }
 
-  .glow-violet-sm {
-    box-shadow: 0 0 10px rgba(124, 90, 240, 0.2);
+  .glow-blue-sm {
+    box-shadow: 0 0 10px rgba(66, 133, 220, 0.15);
   }
 }

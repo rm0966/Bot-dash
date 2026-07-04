@@ -1707,6 +1707,77 @@ export const useBroadcastDm = <TError = ErrorType<ErrorResponse>,
       return useMutation(getBroadcastDmMutationOptions(options));
     }
 
+export const getBroadcastAllUrl = () => {
+
+
+
+
+  return `/api/discord/broadcast-all`
+}
+
+/**
+ * @summary Send a DM to all unique members across all guilds the bot is in
+ */
+export const broadcastAll = async (broadcastInput: BroadcastInput, options?: RequestInit): Promise<BroadcastResult> => {
+
+  return customFetch<BroadcastResult>(getBroadcastAllUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      broadcastInput,)
+  }
+);}
+
+
+
+
+export const getBroadcastAllMutationOptions = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof broadcastAll>>, TError,{data: BodyType<BroadcastInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof broadcastAll>>, TError,{data: BodyType<BroadcastInput>}, TContext> => {
+
+const mutationKey = ['broadcastAll'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof broadcastAll>>, {data: BodyType<BroadcastInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  broadcastAll(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type BroadcastAllMutationResult = NonNullable<Awaited<ReturnType<typeof broadcastAll>>>
+    export type BroadcastAllMutationBody = BodyType<BroadcastInput>
+    export type BroadcastAllMutationError = ErrorType<ErrorResponse>
+
+    /**
+ * @summary Send a DM to all unique members across all guilds the bot is in
+ */
+export const useBroadcastAll = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof broadcastAll>>, TError,{data: BodyType<BroadcastInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof broadcastAll>>,
+        TError,
+        {data: BodyType<BroadcastInput>},
+        TContext
+      > => {
+      return useMutation(getBroadcastAllMutationOptions(options));
+    }
+
 export const getSendDmUrl = (guildId: string,) => {
 
 

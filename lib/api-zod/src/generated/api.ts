@@ -424,6 +424,24 @@ export const BroadcastDmResponse = zod.object({
 
 
 /**
+ * @summary Send a DM to all unique members across all guilds the bot is in
+ */
+export const BroadcastAllBody = zod.object({
+  "token": zod.string(),
+  "content": zod.string(),
+  "skipBots": zod.boolean().optional()
+})
+
+export const BroadcastAllResponse = zod.object({
+  "success": zod.boolean(),
+  "sent": zod.number(),
+  "failed": zod.number(),
+  "total": zod.number(),
+  "message": zod.string()
+})
+
+
+/**
  * @summary Send a direct message to a user
  */
 export const SendDmParams = zod.object({
