@@ -20,11 +20,14 @@ interface AiStatus {
   enabled: boolean;
   channels: string[];
   systemPrompt: string;
+  connectionState?: "disconnected" | "restoring" | "connected" | "failed";
+  connectionError?: string | null;
 }
 
 export function AiPanel({ guildId, token }: AiPanelProps) {
   const { toast } = useToast();
   const [status, setStatus] = useState<AiStatus | null>(null);
+  const [statusError, setStatusError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -51,11 +54,17 @@ export function AiPanel({ guildId, token }: AiPanelProps) {
       if (res.ok) {
         const data = await res.json();
         setStatus(data);
+        setStatusError(null);
         setEnabled(data.enabled ?? false);
         setSelectedChannels(data.channels ?? []);
         setSystemPrompt(data.systemPrompt ?? systemPrompt);
+      } else {
+        const error = await res.json().catch(() => ({}));
+        setStatusError((error as { error?: string }).error || "تعذّر تحميل حالة اتصال البوت");
       }
-    } catch {}
+    } catch {
+      setStatusError("تعذّر الاتصال بالخادم لقراءة حالة البوت");
+    }
     setLoading(false);
   };
 
@@ -162,10 +171,12 @@ export function AiPanel({ guildId, token }: AiPanelProps) {
       </div>
 
       {/* Status Badge */}
-      <div className={`flex items-center gap-2.5 p-3.5 rounded-xl border ${
+        <div className={`flex items-center gap-2.5 p-3.5 rounded-xl border ${
         isActive
           ? "bg-green-500/10 border-green-500/20"
-          : "bg-muted/30 border-border/50"
+            : status?.connectionState === "failed"
+              ? "bg-destructive/10 border-destructive/20"
+              : "bg-muted/30 border-border/50"
       }`}>
         {isActive ? (
           <RadioTower className="h-4 w-4 text-green-400 animate-pulse shrink-0" />
@@ -174,14 +185,26 @@ export function AiPanel({ guildId, token }: AiPanelProps) {
         )}
         <div className="flex-1">
           <p className="text-sm font-medium">
-            {isActive ? "البوت متصل بالسيرفر" : "البوت غير متصل"}
+            {isActive
+              ? "البوت متصل بالسيرفر"
+              : status?.connectionState === "restoring"
+                ? "جارٍ استعادة اتصال البوت"
+                : status?.connectionState === "failed"
+                  ? "فشلت إعادة اتصال البوت"
+                  : "البوت غير متصل"}
           </p>
           <p className="text-xs text-muted-foreground mt-0.5">
             {isActive
               ? enabled
                 ? "الذكاء الاصطناعي مفعّل ويرد على الرسائل"
                 : "متصل لكن AI معطّل — فعّله من الأسفل"
-              : enabled
+              : status?.connectionError
+                ? status.connectionError
+                : statusError
+                  ? statusError
+                  : status?.connectionState === "restoring"
+                    ? "تتم محاولة الاتصال تلقائيًا"
+                    : enabled
                 ? "الخادم يحاول إعادة الاتصال تلقائيًا"
                 : "اضغط 'تفعيل' لتوصيل البوت وتشغيل AI"}
           </p>

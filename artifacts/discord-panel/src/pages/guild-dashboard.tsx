@@ -22,9 +22,11 @@ import { PurgePanel } from "@/components/purge-panel";
 import { BroadcastPanel } from "@/components/broadcast-panel";
 import { AiPanel } from "@/components/ai-panel";
 import { TemplatesPanel } from "@/components/templates-panel";
+import { CommunityFeaturesPanel } from "@/components/community-features-panel";
 
 type NavSection =
   | "overview" | "ai" | "broadcast" | "templates"
+  | "community"
   | "message" | "image" | "channels"
   | "roles" | "members" | "bans" | "emojis"
   | "invites" | "purge" | "autoreply";
@@ -34,6 +36,7 @@ const navItems: { id: NavSection; label: string; icon: React.ElementType; color?
   { id: "ai",         label: "ذكاء اصطناعي", icon: Sparkles,        group: "عام", color: "text-violet-400" },
   { id: "broadcast",  label: "إعلان جماعي",  icon: Megaphone,       group: "عام", color: "text-orange-400" },
   { id: "templates",  label: "قوالب جاهزة",  icon: FileText,        group: "عام" },
+  { id: "community",  label: "ميزات المجتمع", icon: MessageSquare,  group: "المجتمع", color: "text-sky-400" },
   { id: "message",    label: "إرسال رسالة",  icon: MessageSquare,   group: "قنوات" },
   { id: "image",      label: "إرسال صورة",   icon: ImageIcon,       group: "قنوات" },
   { id: "channels",   label: "القنوات",      icon: ListTree,        group: "قنوات" },
@@ -46,13 +49,14 @@ const navItems: { id: NavSection; label: string; icon: React.ElementType; color?
   { id: "autoreply",  label: "رد تلقائي",   icon: Zap,             group: "أدوات" },
 ];
 
-const groups = ["عام", "قنوات", "إدارة", "أدوات"];
+const groups = ["عام", "قنوات", "إدارة", "المجتمع", "أدوات"];
 
 const sectionTitles: Record<NavSection, string> = {
   overview:  "نظرة عامة",
   ai:        "الذكاء الاصطناعي",
   broadcast: "إعلان جماعي",
   templates: "قوالب جاهزة",
+  community: "ميزات المجتمع",
   message:   "إرسال رسالة",
   image:     "إرسال صورة",
   channels:  "القنوات",
@@ -95,6 +99,7 @@ function DashboardContent({ guildId, token }: { guildId: string; token: string }
     if (active === "ai")        return <AiPanel guildId={guildId} token={token} />;
     if (active === "broadcast") return <BroadcastPanel guildId={guildId} token={token} />;
     if (active === "templates") return <TemplatesPanel guildId={guildId} token={token} />;
+    if (active === "community") return <CommunityFeaturesPanel guildId={guildId} token={token} />;
     if (active === "message")   return <MessagePanel channels={textChannels} token={token} type="text" />;
     if (active === "image")     return <MessagePanel channels={textChannels} token={token} type="image" />;
     if (active === "channels")  return <ChannelPanel guildId={guildId} token={token} channels={channels || []} />;

@@ -7,9 +7,21 @@ import {
   getSavedGatewaySession,
   listSavedGatewaySessions,
   saveGatewaySession,
-  tokensMatch,
   type GatewayAiSettings,
 } from "./gateway-session-store";
+import {
+  disconnectGatewaySession,
+  GatewayTokenCryptoError,
+  restoreGatewaySessions,
+  safeGatewayRestoreFailure,
+  tokensMatch,
+  type GatewayRestoreEvent,
+} from "./gateway-session-domain";
+import {
+  handleAntiSpamMessage,
+  publishTicketPanel as publishTicketPanelForClient,
+  registerGuildFeatureHandlers,
+} from "./guild-feature-handlers";
 
 interface AiConfig {
   enabled: boolean;
@@ -27,8 +39,24 @@ interface ActiveSession {
 
 const sessions = new Map<string, ActiveSession>();
 const lastAiFailureNoticeAt = new Map<string, number>();
+const connectionStatuses = new Map<string, GatewayRestoreEvent>();
+let gatewayRestoreInProgress = false;
 export const DEFAULT_AI_SYSTEM_PROMPT =
   "أنت مساعد ذكي ومفيد في سيرفر ديسكورد. أجب بإيجاز وأدب.";
+
+export function getGuildConnectionStatus(guildId: string): GatewayRestoreEvent | { state: "disconnected" } | { state: "connected" } {
+  if (sessions.has(guildId)) return { state: "connected" };
+  return connectionStatuses.get(guildId) ?? {
+    state: gatewayRestoreInProgress ? "restoring" : "disconnected",
+  };
+}
+
+function setConnectionFailure(guildId: string, error: unknown): void {
+  connectionStatuses.set(guildId, {
+    state: "failed",
+    message: safeGatewayRestoreFailure(error),
+  });
+}
 
 async function callAI(
   messages: Array<{ role: string; content: string }>,
@@ -101,16 +129,21 @@ export async function activateGuild(
   const client = new Client({
     intents: [
       GatewayIntentBits.Guilds,
+      GatewayIntentBits.GuildMembers,
+      GatewayIntentBits.GuildModeration,
       GatewayIntentBits.GuildMessages,
       GatewayIntentBits.MessageContent,
     ],
   });
+  registerGuildFeatureHandlers(client, guildId);
 
   client.on("messageCreate", async (message: Message) => {
     if (message.author.bot) return;
     if (message.guildId !== guildId) return;
 
     try {
+      if (await handleAntiSpamMessage(message, guildId)) return;
+
       // --- Auto-reply rules ---
       const rules = await db
         .select()
@@ -201,23 +234,36 @@ export async function activateGuild(
     }
   });
 
-  await client.login(token);
+  try {
+    await client.login(token);
+  } catch (error) {
+    setConnectionFailure(guildId, error);
+    try {
+      await client.destroy();
+    } catch {
+      // A failed login may leave no active socket to destroy.
+    }
+    throw error;
+  }
+
   sessions.set(key, { client, guildId, token, ai });
+  connectionStatuses.delete(guildId);
 }
 
 export async function deactivateGuild(guildId: string, expectedToken: string): Promise<void> {
   const session = sessions.get(guildId);
-  const saved = session ? null : await getSavedGatewaySession(guildId);
-  const currentToken = session?.token ?? saved?.token;
-  if (currentToken && !tokensMatch(currentToken, expectedToken)) {
-    throw new Error("Invalid bot token");
-  }
-
-  await deleteSavedGatewaySession(guildId);
-  if (session) {
-    await session.client.destroy();
-    sessions.delete(guildId);
-  }
+  await disconnectGatewaySession({
+    expectedToken,
+    activeToken: session?.token ?? null,
+    loadSavedToken: async () => (await getSavedGatewaySession(guildId))?.token ?? null,
+    removeSavedSession: () => deleteSavedGatewaySession(guildId),
+    destroyActiveSession: async () => {
+      if (!session) return;
+      await session.client.destroy();
+      sessions.delete(guildId);
+    },
+  });
+  connectionStatuses.delete(guildId);
   lastAiFailureNoticeAt.delete(guildId);
 }
 
@@ -265,27 +311,88 @@ export async function persistGuildAISettings(
   settings: GatewayAiSettings
 ): Promise<void> {
   await saveGatewaySession(guildId, token, settings);
+  connectionStatuses.delete(guildId);
 }
 
 export async function restoreSavedGatewaySessions(): Promise<void> {
-  const savedSessions = await listSavedGatewaySessions();
-  logger.info({ count: savedSessions.length }, "Restoring saved Discord gateway sessions");
+  gatewayRestoreInProgress = true;
+  try {
+    const { sessions: savedSessions, failures } = await listSavedGatewaySessions();
+    logger.info({ count: savedSessions.length }, "Restoring saved Discord gateway sessions");
 
-  for (const saved of savedSessions) {
-    try {
-      await activateGuild(saved.token, saved.guildId, saved);
-      logger.info({ guildId: saved.guildId }, "Restored Discord gateway session");
-    } catch (error) {
-      logger.error(
-        {
-          guildId: saved.guildId,
-          error: error instanceof Error ? error.message : String(error),
-        },
-        "Failed to restore Discord gateway session"
-      );
+    for (const failure of failures) {
+      const error = new GatewayTokenCryptoError(failure.code);
+      setConnectionFailure(failure.guildId, error);
     }
+
+    await restoreGatewaySessions(
+      savedSessions,
+      async (saved) => {
+        await activateGuild(saved.token, saved.guildId, saved);
+      },
+      (guildId, event) => {
+        if (event.state === "connected") {
+          connectionStatuses.delete(guildId);
+          logger.info({ guildId }, "Restored Discord gateway session");
+        } else {
+          connectionStatuses.set(guildId, event);
+          if (event.state === "failed") {
+            logger.error({ guildId, message: event.message }, "Failed to restore Discord gateway session");
+          }
+        }
+      }
+    );
+  } finally {
+    gatewayRestoreInProgress = false;
   }
 }
+
+export async function ensureGuildGatewaySession(token: string, guildId: string): Promise<void> {
+  const active = sessions.get(guildId);
+  if (active) {
+    if (!tokensMatch(active.token, token)) throw new Error("Invalid bot token");
+    await persistGuildAISettings(guildId, token, {
+      enabled: active.ai.enabled,
+      channels: active.ai.channels,
+      systemPrompt: active.ai.systemPrompt,
+    });
+    return;
+  }
+
+  const saved = await getSavedGatewaySession(guildId);
+  const settings = saved
+    ? {
+        enabled: saved.enabled,
+        channels: saved.channels,
+        systemPrompt: saved.systemPrompt,
+      }
+    : { enabled: false, channels: [], systemPrompt: DEFAULT_AI_SYSTEM_PROMPT };
+
+  await activateGuild(token, guildId, settings);
+  await persistGuildAISettings(guildId, token, settings);
+}
+
+export async function sendGuildMessage(
+  guildId: string,
+  channelId: string,
+  content: string
+): Promise<void> {
+  const session = sessions.get(guildId);
+  if (!session) throw new Error("Bot is not connected to this server");
+
+  const channel = await session.client.channels.fetch(channelId);
+  if (!channel || !channel.isTextBased() || !("send" in channel)) {
+    throw new Error("Target channel is not a text channel");
+  }
+  await channel.send(content);
+}
+
+export async function publishGuildTicketPanel(guildId: string): Promise<void> {
+  const session = sessions.get(guildId);
+  if (!session) throw new Error("Bot is not connected to this server");
+  await publishTicketPanelForClient(session.client, guildId);
+}
+
 
 export async function getPersistedGuildAISettings(
   guildId: string

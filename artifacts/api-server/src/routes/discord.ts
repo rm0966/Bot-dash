@@ -8,12 +8,13 @@ import {
   deactivateGuild,
   DEFAULT_AI_SYSTEM_PROMPT,
   getAIConfig,
+  getGuildConnectionStatus,
   getPersistedGuildAISettings,
   isGuildActive,
   isGuildTokenValid,
   persistGuildAISettings,
 } from "../lib/gateway-manager";
-import { tokensMatch } from "../lib/gateway-session-store";
+import { tokensMatch } from "../lib/gateway-session-domain";
 import { createJob, updateJob, getJob } from "../lib/broadcast-manager";
 
 const router = Router();
@@ -529,6 +530,8 @@ router.get("/discord/guilds/:guildId/ai-session", async (req, res): Promise<void
       const cfg = getAIConfig(guildId);
       res.json({
         active: true,
+        connectionState: "connected",
+        connectionError: null,
         enabled: cfg?.enabled ?? false,
         channels: cfg?.channels ?? [],
         systemPrompt: cfg?.systemPrompt ?? DEFAULT_AI_SYSTEM_PROMPT,
@@ -544,6 +547,10 @@ router.get("/discord/guilds/:guildId/ai-session", async (req, res): Promise<void
 
     res.json({
       active: false,
+      connectionState: getGuildConnectionStatus(guildId).state,
+      connectionError: getGuildConnectionStatus(guildId).state === "failed"
+        ? getGuildConnectionStatus(guildId).message
+        : null,
       enabled: saved?.enabled ?? false,
       channels: saved?.channels ?? [],
       systemPrompt: saved?.systemPrompt ?? DEFAULT_AI_SYSTEM_PROMPT,
