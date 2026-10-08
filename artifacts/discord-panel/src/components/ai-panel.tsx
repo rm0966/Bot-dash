@@ -59,7 +59,15 @@ export function AiPanel({ guildId, token }: AiPanelProps) {
     setLoading(false);
   };
 
-  useEffect(() => { fetchStatus(); }, [guildId]);
+  useEffect(() => {
+    void fetchStatus();
+    if (status?.active) return;
+
+    const interval = window.setInterval(() => {
+      void fetchStatus();
+    }, 10_000);
+    return () => window.clearInterval(interval);
+  }, [guildId, status?.active]);
 
   const handleActivate = async () => {
     setSaving(true);
@@ -70,7 +78,10 @@ export function AiPanel({ guildId, token }: AiPanelProps) {
         body: JSON.stringify({ token, enabled, channels: selectedChannels, systemPrompt }),
       });
       if (res.ok) {
-        toast({ title: "تم الحفظ", description: "تم تطبيق إعدادات الذكاء الاصطناعي" });
+        toast({
+          title: "تم الحفظ",
+          description: "تم حفظ الإعدادات لاستعادة الاتصال تلقائيًا بعد إعادة التشغيل",
+        });
         fetchStatus();
       } else {
         const err = await res.json().catch(() => ({}));
@@ -85,15 +96,31 @@ export function AiPanel({ guildId, token }: AiPanelProps) {
   const handleDeactivate = async () => {
     setSaving(true);
     try {
-      await fetch(`${apiBase}/api/discord/guilds/${guildId}/ai-session`, {
+      const res = await fetch(`${apiBase}/api/discord/guilds/${guildId}/ai-session`, {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ token }),
       });
+      if (!res.ok) {
+        const error = await res.json().catch(() => ({}));
+        toast({
+          title: "تعذّر الإيقاف",
+          description: (error as { error?: string }).error || "فشل إيقاف جلسة البوت",
+          variant: "destructive",
+        });
+        return;
+      }
       toast({ title: "تم الإيقاف", description: "تم إيقاف البوت من السيرفر" });
-      fetchStatus();
-    } catch {}
-    setSaving(false);
+      await fetchStatus();
+    } catch {
+      toast({
+        title: "خطأ",
+        description: "فشل الاتصال بالسيرفر",
+        variant: "destructive",
+      });
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleClearHistory = async () => {
@@ -154,7 +181,9 @@ export function AiPanel({ guildId, token }: AiPanelProps) {
               ? enabled
                 ? "الذكاء الاصطناعي مفعّل ويرد على الرسائل"
                 : "متصل لكن AI معطّل — فعّله من الأسفل"
-              : "اضغط 'تفعيل' لتوصيل البوت وتشغيل AI"}
+              : enabled
+                ? "الخادم يحاول إعادة الاتصال تلقائيًا"
+                : "اضغط 'تفعيل' لتوصيل البوت وتشغيل AI"}
           </p>
         </div>
         {isActive && (

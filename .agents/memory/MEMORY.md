@@ -1,1 +1,2 @@
 - [Pollinations text API](pollinations-text-api.md) — do not rely on the legacy unauthenticated text endpoint; verify current auth requirements before using it.
+- [Discord session persistence](discord-session-persistence.md) — keep gateway credentials encrypted, and distinguish disabling AI from intentionally disconnecting the bot.

@@ -2,6 +2,14 @@ import { Client, GatewayIntentBits, Message } from "discord.js";
 import { db, autoRepliesTable } from "@workspace/db";
 import { eq, and } from "drizzle-orm";
 import { logger } from "./logger";
+import {
+  deleteSavedGatewaySession,
+  getSavedGatewaySession,
+  listSavedGatewaySessions,
+  saveGatewaySession,
+  tokensMatch,
+  type GatewayAiSettings,
+} from "./gateway-session-store";
 
 interface AiConfig {
   enabled: boolean;
@@ -19,6 +27,8 @@ interface ActiveSession {
 
 const sessions = new Map<string, ActiveSession>();
 const lastAiFailureNoticeAt = new Map<string, number>();
+export const DEFAULT_AI_SYSTEM_PROMPT =
+  "أنت مساعد ذكي ومفيد في سيرفر ديسكورد. أجب بإيجاز وأدب.";
 
 async function callAI(
   messages: Array<{ role: string; content: string }>,
@@ -73,14 +83,18 @@ function historyKey(channelId: string, userId: string) {
   return `${channelId}:${userId}`;
 }
 
-export async function activateGuild(token: string, guildId: string): Promise<void> {
+export async function activateGuild(
+  token: string,
+  guildId: string,
+  settings: Partial<GatewayAiSettings> = {}
+): Promise<void> {
   const key = guildId;
   if (sessions.has(key)) return;
 
   const ai: AiConfig = {
-    enabled: false,
-    channels: [],
-    systemPrompt: "أنت مساعد ذكي ومفيد في سيرفر ديسكورد. أجب بإيجاز وأدب.",
+    enabled: settings.enabled ?? false,
+    channels: settings.channels ?? [],
+    systemPrompt: settings.systemPrompt ?? DEFAULT_AI_SYSTEM_PROMPT,
     history: new Map(),
   };
 
@@ -191,11 +205,19 @@ export async function activateGuild(token: string, guildId: string): Promise<voi
   sessions.set(key, { client, guildId, token, ai });
 }
 
-export async function deactivateGuild(guildId: string): Promise<void> {
+export async function deactivateGuild(guildId: string, expectedToken: string): Promise<void> {
   const session = sessions.get(guildId);
-  if (!session) return;
-  await session.client.destroy();
-  sessions.delete(guildId);
+  const saved = session ? null : await getSavedGatewaySession(guildId);
+  const currentToken = session?.token ?? saved?.token;
+  if (currentToken && !tokensMatch(currentToken, expectedToken)) {
+    throw new Error("Invalid bot token");
+  }
+
+  await deleteSavedGatewaySession(guildId);
+  if (session) {
+    await session.client.destroy();
+    sessions.delete(guildId);
+  }
   lastAiFailureNoticeAt.delete(guildId);
 }
 
@@ -203,9 +225,14 @@ export function isGuildActive(guildId: string): boolean {
   return sessions.has(guildId);
 }
 
+export function isGuildTokenValid(guildId: string, token: string): boolean {
+  const session = sessions.get(guildId);
+  return session ? tokensMatch(session.token, token) : false;
+}
+
 export function configureAI(
   guildId: string,
-  config: Partial<Pick<AiConfig, "enabled" | "channels" | "systemPrompt">>
+  config: Partial<GatewayAiSettings>
 ): void {
   const session = sessions.get(guildId);
   if (!session) return;
@@ -216,7 +243,7 @@ export function configureAI(
 
 export function getAIConfig(
   guildId: string
-): { enabled: boolean; channels: string[]; systemPrompt: string } | null {
+): GatewayAiSettings | null {
   const session = sessions.get(guildId);
   if (!session) return null;
   return {
@@ -230,4 +257,45 @@ export function clearAIHistory(guildId: string): void {
   const session = sessions.get(guildId);
   if (!session) return;
   session.ai.history.clear();
+}
+
+export async function persistGuildAISettings(
+  guildId: string,
+  token: string,
+  settings: GatewayAiSettings
+): Promise<void> {
+  await saveGatewaySession(guildId, token, settings);
+}
+
+export async function restoreSavedGatewaySessions(): Promise<void> {
+  const savedSessions = await listSavedGatewaySessions();
+  logger.info({ count: savedSessions.length }, "Restoring saved Discord gateway sessions");
+
+  for (const saved of savedSessions) {
+    try {
+      await activateGuild(saved.token, saved.guildId, saved);
+      logger.info({ guildId: saved.guildId }, "Restored Discord gateway session");
+    } catch (error) {
+      logger.error(
+        {
+          guildId: saved.guildId,
+          error: error instanceof Error ? error.message : String(error),
+        },
+        "Failed to restore Discord gateway session"
+      );
+    }
+  }
+}
+
+export async function getPersistedGuildAISettings(
+  guildId: string
+): Promise<(GatewayAiSettings & { token: string }) | null> {
+  const saved = await getSavedGatewaySession(guildId);
+  if (!saved) return null;
+  return {
+    token: saved.token,
+    enabled: saved.enabled,
+    channels: saved.channels,
+    systemPrompt: saved.systemPrompt,
+  };
 }

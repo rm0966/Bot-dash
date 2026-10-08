@@ -1,5 +1,6 @@
 import app from "./app";
 import { logger } from "./lib/logger";
+import { restoreSavedGatewaySessions } from "./lib/gateway-manager";
 
 const rawPort = process.env["PORT"];
 
@@ -22,4 +23,10 @@ app.listen(port, (err) => {
   }
 
   logger.info({ port }, "Server listening");
+  void restoreSavedGatewaySessions().catch((error) => {
+    logger.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      "Failed to restore saved Discord gateway sessions"
+    );
+  });
 });

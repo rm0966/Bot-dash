@@ -1,7 +1,19 @@
 import { Router } from "express";
 import { db, warningsTable, autoRepliesTable } from "@workspace/db";
 import { eq, and } from "drizzle-orm";
-import { activateGuild, deactivateGuild, isGuildActive, configureAI, getAIConfig, clearAIHistory } from "../lib/gateway-manager";
+import {
+  activateGuild,
+  clearAIHistory,
+  configureAI,
+  deactivateGuild,
+  DEFAULT_AI_SYSTEM_PROMPT,
+  getAIConfig,
+  getPersistedGuildAISettings,
+  isGuildActive,
+  isGuildTokenValid,
+  persistGuildAISettings,
+} from "../lib/gateway-manager";
+import { tokensMatch } from "../lib/gateway-session-store";
 import { createJob, updateJob, getJob } from "../lib/broadcast-manager";
 
 const router = Router();
@@ -384,7 +396,13 @@ router.post("/discord/guilds/:guildId/auto-replies/deactivate", async (req, res)
   const { token } = req.body;
   const { guildId } = req.params;
   if (!token) return res.status(400).json({ error: "token is required" });
-  await deactivateGuild(guildId);
+  try {
+    await deactivateGuild(guildId, token);
+  } catch (error) {
+    return res.status(401).json({
+      error: error instanceof Error ? error.message : "Failed to deactivate bot session",
+    });
+  }
   return res.json({ success: true, message: "Auto-reply listener deactivated" });
 });
 
@@ -497,41 +515,117 @@ router.post("/discord/guilds/:guildId/members/:userId/nickname", async (req, res
 
 // ── AI Session Routes ──────────────────────────────────────────────────────
 
-router.get("/discord/guilds/:guildId/ai-session", (req, res) => {
+router.get("/discord/guilds/:guildId/ai-session", async (req, res): Promise<void> => {
   const { guildId } = req.params;
   const active = isGuildActive(guildId);
-  const cfg = getAIConfig(guildId);
-  return res.json({
-    active,
-    enabled: cfg?.enabled ?? false,
-    channels: cfg?.channels ?? [],
-    systemPrompt: cfg?.systemPrompt ?? "أنت مساعد ذكي ومفيد في سيرفر ديسكورد. أجب بإيجاز وأدب.",
-  });
-});
+  const requestToken = req.get("X-Bot-Token") ?? "";
 
-router.post("/discord/guilds/:guildId/ai-session", async (req, res) => {
-  const { token, enabled, channels, systemPrompt } = req.body;
-  const { guildId } = req.params;
-  if (!token) return res.status(400).json({ error: "token is required" });
   try {
-    if (!isGuildActive(guildId)) {
-      await activateGuild(token, guildId);
+    if (active) {
+      if (!isGuildTokenValid(guildId, requestToken)) {
+        res.status(401).json({ error: "Invalid bot token" });
+        return;
+      }
+      const cfg = getAIConfig(guildId);
+      res.json({
+        active: true,
+        enabled: cfg?.enabled ?? false,
+        channels: cfg?.channels ?? [],
+        systemPrompt: cfg?.systemPrompt ?? DEFAULT_AI_SYSTEM_PROMPT,
+      });
+      return;
     }
-    configureAI(guildId, {
-      enabled: enabled ?? false,
-      channels: channels ?? [],
-      systemPrompt: systemPrompt ?? "أنت مساعد ذكي ومفيد في سيرفر ديسكورد. أجب بإيجاز وأدب.",
+
+    const saved = await getPersistedGuildAISettings(guildId);
+    if (saved && (!requestToken || !tokensMatch(saved.token, requestToken))) {
+      res.status(401).json({ error: "Invalid bot token" });
+      return;
+    }
+
+    res.json({
+      active: false,
+      enabled: saved?.enabled ?? false,
+      channels: saved?.channels ?? [],
+      systemPrompt: saved?.systemPrompt ?? DEFAULT_AI_SYSTEM_PROMPT,
     });
-    return res.json({ success: true, active: true });
-  } catch (e: any) {
-    return res.status(400).json({ error: e?.message ?? "Failed to start AI session" });
+  } catch (error) {
+    req.log.error(
+      { guildId, error: error instanceof Error ? error.message : String(error) },
+      "Failed to load saved AI settings"
+    );
+    res.status(500).json({ error: "Failed to load saved AI settings" });
   }
 });
 
-router.delete("/discord/guilds/:guildId/ai-session", async (req, res) => {
+router.post("/discord/guilds/:guildId/ai-session", async (req, res): Promise<void> => {
+  const { token, enabled, channels, systemPrompt } = req.body;
   const { guildId } = req.params;
-  await deactivateGuild(guildId);
-  return res.json({ success: true });
+  if (!token || typeof token !== "string") {
+    res.status(400).json({ error: "token is required" });
+    return;
+  }
+
+  if (isGuildActive(guildId) && !isGuildTokenValid(guildId, token)) {
+    res.status(401).json({ error: "Invalid bot token" });
+    return;
+  }
+
+  const settings = {
+    enabled: enabled === true,
+    channels: Array.isArray(channels)
+      ? channels.filter((channel: unknown): channel is string => typeof channel === "string")
+      : [],
+    systemPrompt: typeof systemPrompt === "string" ? systemPrompt : DEFAULT_AI_SYSTEM_PROMPT,
+  };
+
+  try {
+    if (!isGuildActive(guildId)) {
+      await activateGuild(token, guildId, settings);
+    }
+    configureAI(guildId, settings);
+  } catch (error) {
+    req.log.warn(
+      { guildId, error: error instanceof Error ? error.message : String(error) },
+      "Failed to start Discord AI session"
+    );
+    res.status(400).json({
+      error: error instanceof Error ? error.message : "Failed to start AI session",
+    });
+    return;
+  }
+
+  try {
+    await persistGuildAISettings(guildId, token, settings);
+  } catch (error) {
+    req.log.error(
+      { guildId, error: error instanceof Error ? error.message : String(error) },
+      "Failed to securely persist Discord AI settings"
+    );
+    res.status(500).json({
+      error: "Bot connected, but its settings could not be saved for automatic reconnection.",
+    });
+    return;
+  }
+
+  res.json({ success: true, active: true });
+});
+
+router.delete("/discord/guilds/:guildId/ai-session", async (req, res): Promise<void> => {
+  const { guildId } = req.params;
+  const { token } = req.body;
+  if (!token || typeof token !== "string") {
+    res.status(400).json({ error: "token is required" });
+    return;
+  }
+
+  try {
+    await deactivateGuild(guildId, token);
+    res.json({ success: true });
+  } catch (error) {
+    res.status(401).json({
+      error: error instanceof Error ? error.message : "Failed to deactivate bot session",
+    });
+  }
 });
 
 router.delete("/discord/guilds/:guildId/ai-session/history", (req, res) => {
