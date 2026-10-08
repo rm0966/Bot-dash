@@ -1,0 +1,1 @@
+- [Pollinations text API](pollinations-text-api.md) — do not rely on the legacy unauthenticated text endpoint; verify current auth requirements before using it.

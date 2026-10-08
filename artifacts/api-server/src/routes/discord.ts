@@ -550,14 +550,18 @@ router.get("/discord/broadcast-jobs/:jobId", (req, res) => {
 
 // ── Broadcast All (job-based) ──────────────────────────────────────────────
 
-router.post("/discord/broadcast-all", async (req, res) => {
+router.post("/discord/broadcast-all", async (req, res): Promise<void> => {
   const { token, content, skipBots } = req.body;
-  if (!token || !content) return res.status(400).json({ error: "token and content are required" });
+  if (!token || !content) {
+    res.status(400).json({ error: "token and content are required" });
+    return;
+  }
 
   const guildsRes = await discordRequest("/users/@me/guilds", token);
   if (!guildsRes.ok) {
     const err = await guildsRes.json().catch(() => ({})) as Record<string, unknown>;
-    return res.status(400).json({ error: String(err.message ?? "Failed to fetch guilds") });
+    res.status(400).json({ error: String(err.message ?? "Failed to fetch guilds") });
+    return;
   }
   const guilds = await guildsRes.json() as Array<Record<string, unknown>>;
 
@@ -604,15 +608,19 @@ router.post("/discord/broadcast-all", async (req, res) => {
 
 // ── Broadcast Guild (job-based) ────────────────────────────────────────────
 
-router.post("/discord/guilds/:guildId/broadcast", async (req, res) => {
+router.post("/discord/guilds/:guildId/broadcast", async (req, res): Promise<void> => {
   const { token, content, skipBots } = req.body;
   const { guildId } = req.params;
-  if (!token || !content) return res.status(400).json({ error: "token and content are required" });
+  if (!token || !content) {
+    res.status(400).json({ error: "token and content are required" });
+    return;
+  }
 
   const membersRes = await discordRequest(`/guilds/${guildId}/members?limit=1000`, token);
   if (!membersRes.ok) {
     const err = await membersRes.json().catch(() => ({})) as Record<string, unknown>;
-    return res.status(400).json({ error: String(err.message ?? "Failed to fetch members") });
+    res.status(400).json({ error: String(err.message ?? "Failed to fetch members") });
+    return;
   }
   const members = await membersRes.json() as Array<Record<string, unknown>>;
   const targets = members.filter(m => {

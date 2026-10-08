@@ -130,7 +130,7 @@ export function AiPanel({ guildId, token }: AiPanelProps) {
         </div>
         <div>
           <h3 className="font-semibold text-base">ذكاء اصطناعي للسيرفر</h3>
-          <p className="text-sm text-muted-foreground">يتكلم مع الأعضاء تلقائيًا باستخدام AI مجاني</p>
+          <p className="text-sm text-muted-foreground">يرد على رسائل الأعضاء عبر Groq AI</p>
         </div>
       </div>
 
@@ -173,8 +173,8 @@ export function AiPanel({ guildId, token }: AiPanelProps) {
       <div className="flex items-start gap-2.5 bg-blue-500/10 border border-blue-500/20 rounded-xl p-3.5">
         <Info className="h-4 w-4 text-blue-400 shrink-0 mt-0.5" />
         <p className="text-xs text-blue-200/80 leading-relaxed">
-          يستخدم <strong>Pollinations.ai</strong> — خدمة AI مجانية بالكامل بدون مفتاح API.
-          البوت يحفظ آخر 10 رسائل لكل مستخدم لمحادثة متسلسلة.
+          يستخدم <strong>Groq AI</strong> عبر مفتاح محفوظ بأمان على الخادم.
+          يحتفظ البوت بآخر 10 رسائل لكل مستخدم لمواصلة سياق المحادثة.
         </p>
       </div>
 
